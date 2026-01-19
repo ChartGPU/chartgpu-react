@@ -8,7 +8,7 @@ function LineChartExample() {
   const [error, setError] = useState<string | null>(null);
 
   // Generate sample data
-  const generateLineData = useCallback((points: number = 100) => {
+  const generateLineData = useCallback((points: number = 5000000) => {
     const data = [];
     for (let i = 0; i < points; i++) {
       const x = i;
@@ -112,9 +112,9 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Revenue',
-        data: Array.from({ length: 50 }, (_, i) => ({
+        data: Array.from({ length: 500000 }, (_, i) => ({
           x: i,
-          y: 100 + Math.random() * 100 + i * 2,
+          y: 100 + Math.random() * 5000000 + i * 2,
         })),
         lineStyle: {
           width: 2,
@@ -124,7 +124,7 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Expenses',
-        data: Array.from({ length: 50 }, (_, i) => ({
+        data: Array.from({ length: 500000 }, (_, i) => ({
           x: i,
           y: 80 + Math.random() * 60 + i * 1.5,
         })),
@@ -136,7 +136,7 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Profit',
-        data: Array.from({ length: 50 }, (_, i) => ({
+        data: Array.from({ length: 500000 }, (_, i) => ({
           x: i,
           y: 20 + Math.random() * 40 + i * 0.5,
         })),

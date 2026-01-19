@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { ChartGPU } from 'chartgpu';
 import type { ChartGPUOptions, ChartGPUInstance } from 'chartgpu';
 
@@ -16,7 +17,7 @@ export interface ChartGPUChartProps {
   /**
    * Optional inline styles for the container
    */
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 
   /**
    * Optional callback when chart instance is created

@@ -30,7 +30,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "chartgpu": "file:../chart-gpu"
+    "chartgpu": "^0.1.0"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

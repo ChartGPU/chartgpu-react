@@ -199,6 +199,33 @@ npm run dev
 
 The dev server will start at `http://localhost:3000` and open the examples page automatically.
 
+### Local Development with Linked ChartGPU
+
+To develop `chartgpu-react` against a local version of the `chartgpu` package (useful for testing changes across both repositories):
+
+```bash
+# 1. Link the chartgpu package from the sibling repo
+cd ../chart-gpu
+npm link
+
+# 2. Link chartgpu into this project
+cd ../chartgpu-react
+npm link chartgpu
+
+# 3. Build and run - will use the linked local package
+npm run build
+npm run dev
+```
+
+**Note:** After linking, `npm run build` and `npm run dev` will resolve imports to your local `chartgpu` package instead of the published version. This allows you to test changes in both repos simultaneously.
+
+To unlink and return to the published package:
+
+```bash
+npm unlink chartgpu
+npm install
+```
+
 ## Type Exports
 
 The package re-exports common types from ChartGPU for convenience:
