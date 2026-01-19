@@ -15,6 +15,10 @@ export type {
   MouseOverParams,
 } from './types';
 
+// useChartGPU hook (Story 6.19)
+export { useChartGPU } from './useChartGPU';
+export type { UseChartGPUResult } from './useChartGPU';
+
 /**
  * @deprecated Use `ChartGPU` instead. `ChartGPUChart` is kept for backward compatibility.
  * Will be removed in a future major version.
