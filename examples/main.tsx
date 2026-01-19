@@ -112,9 +112,9 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Revenue',
-        data: Array.from({ length: 500000 }, (_, i) => ({
+        data: Array.from({ length: 50 }, (_, i) => ({
           x: i,
-          y: 100 + Math.random() * 5000000 + i * 2,
+          y: 100 + Math.random() * 50 + i * 2,
         })),
         lineStyle: {
           width: 2,
@@ -124,9 +124,9 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Expenses',
-        data: Array.from({ length: 500000 }, (_, i) => ({
+        data: Array.from({ length: 50 }, (_, i) => ({
           x: i,
-          y: 80 + Math.random() * 60 + i * 1.5,
+          y: 80 + Math.random() * 50 + i * 1.5,
         })),
         lineStyle: {
           width: 2,
@@ -136,7 +136,7 @@ function MultiSeriesExample() {
       {
         type: 'line',
         name: 'Profit',
-        data: Array.from({ length: 500000 }, (_, i) => ({
+        data: Array.from({ length: 49 }, (_, i) => ({
           x: i,
           y: 20 + Math.random() * 40 + i * 0.5,
         })),
