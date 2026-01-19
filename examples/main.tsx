@@ -8,7 +8,7 @@ function LineChartExample() {
   const [error, setError] = useState<string | null>(null);
 
   // Generate sample data
-  const generateLineData = useCallback((points: number = 5000000) => {
+  const generateLineData = useCallback((points: number = 10000) => {
     const data = [];
     for (let i = 0; i < points; i++) {
       const x = i;
@@ -22,23 +22,13 @@ function LineChartExample() {
     series: [
       {
         type: 'line',
-        name: 'Sample Line Series',
         data: generateLineData(),
-        lineStyle: {
-          width: 2,
-          color: '#667eea',
-        },
-        areaStyle: {
-          color: 'rgba(102, 126, 234, 0.2)',
-        },
+      },
+      {
+        type: 'line',
+        data: generateLineData(),
       },
     ],
-    xAxis: {
-      type: 'value',
-    },
-    yAxis: {
-      type: 'value',
-    },
     grid: {
       left: 60,
       right: 40,
