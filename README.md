@@ -314,4 +314,4 @@ MIT
 
 ## Related Projects
 
-- [ChartGPU](https://github.com/huntergemmer/chart-gpu) - Core WebGPU charting library
+- [ChartGPU](https://github.com/ChartGPU/ChartGPU) - Core WebGPU charting library
