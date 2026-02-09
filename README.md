@@ -1,35 +1,32 @@
 # chartgpu-react
 
-React bindings for [ChartGPU](https://github.com/huntergemmer/chart-gpu) - a WebGPU-powered charting library delivering high-performance data visualization.
+<p align="center">
+  React bindings for <a href="https://github.com/ChartGPU/ChartGPU">ChartGPU</a> — WebGPU-powered charting for high-performance data visualization.
+</p>
 
-## Documentation
+<div align="center">
 
-- **Getting started**: [`docs/GETTING_STARTED.md`](./docs/GETTING_STARTED.md)
-- **API reference**: [`docs/API.md`](./docs/API.md)
-- **Recipes**:
-  - [`onCrosshairMove`](./docs/recipes/crosshair-move.md)
-  - [`useConnectCharts` / `connectCharts`](./docs/recipes/chart-sync.md)
-  - [`createAnnotationAuthoring`](./docs/recipes/annotation-authoring.md)
-  - [`appendData` streaming](./docs/recipes/streaming.md)
-  - [`dataZoom` + `onZoomChange`](./docs/recipes/datazoom-basics.md)
+[![Documentation](https://img.shields.io/badge/Documentation-Getting%20Started-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/blob/main/docs/GETTING_STARTED.md)
+[![API Reference](https://img.shields.io/badge/API-Reference-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/blob/main/docs/API.md)
+[![Examples](https://img.shields.io/badge/Examples-Run%20Locally-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/tree/main/examples)
 
-## Installation
+[![npm version](https://img.shields.io/npm/v/chartgpu-react?style=for-the-badge&color=blue)](https://www.npmjs.com/package/chartgpu-react)
+[![NPM Downloads](https://img.shields.io/npm/dm/chartgpu-react?style=for-the-badge&color=%2368cc49)](https://www.npmjs.com/package/chartgpu-react)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://www.npmjs.com/package/chartgpu-react)
 
-```bash
-npm install chartgpu-react chartgpu react react-dom
-```
+</div>
 
-## Requirements
+`chartgpu-react` is a **thin React + TypeScript wrapper** around the [`chartgpu`](https://www.npmjs.com/package/chartgpu) core library.
 
-- React 18.0.0 or higher
-- Browser with WebGPU support:
-  - Chrome/Edge 113+
-  - Safari 18+
-  - Firefox (not yet supported)
+## Highlights
 
-Check browser compatibility at [caniuse.com/webgpu](https://caniuse.com/webgpu)
+- **`ChartGPU` component (recommended)**: async create/dispose lifecycle + debounced `ResizeObserver` sizing
+- **Event props**: `onClick`, `onCrosshairMove`, `onZoomChange`, etc.
+- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`)
+- **Hooks**: `useChartGPU(...)`, `useConnectCharts(...)`
+- **Helper re-exports (from `chartgpu`)**: `createChart`, `connectCharts`, `createAnnotationAuthoring`
 
-## Quick Start
+## Quick start
 
 ```tsx
 import { ChartGPU } from 'chartgpu-react';
@@ -56,14 +53,25 @@ function MyChart() {
     yAxis: { type: 'value' },
   };
 
-  return (
-    <ChartGPU
-      options={options}
-      style={{ width: '100%', height: '400px' }}
-    />
-  );
+  return <ChartGPU options={options} style={{ width: '100%', height: '400px' }} />;
 }
 ```
+
+## Installation
+
+```bash
+npm install chartgpu-react chartgpu react react-dom
+```
+
+### Requirements
+
+- React 18.0.0 or higher
+- Browser with WebGPU support:
+  - Chrome/Edge 113+
+  - Safari 18+
+  - Firefox (not yet supported)
+
+Check browser compatibility at [caniuse.com/webgpu](https://caniuse.com/webgpu).
 
 ## What this package provides
 
@@ -82,7 +90,7 @@ function MyChart() {
 
 For details, start with the [API reference](./docs/API.md).
 
-## v0.2.3 feature snippets (ChartGPU core)
+## Feature snippets (ChartGPU core)
 
 These snippets use helpers and events from the `chartgpu` core library (peer dependency of `chartgpu-react`).
 
@@ -186,9 +194,23 @@ function CandlestickStreaming() {
 }
 ```
 
+## Documentation
+
+- **Getting started**: [`docs/GETTING_STARTED.md`](./docs/GETTING_STARTED.md)
+- **API reference**: [`docs/API.md`](./docs/API.md)
+- **Recipes**:
+  - [`onCrosshairMove`](./docs/recipes/crosshair-move.md)
+  - [`useConnectCharts` / `connectCharts`](./docs/recipes/chart-sync.md)
+  - [`createAnnotationAuthoring`](./docs/recipes/annotation-authoring.md)
+  - [`appendData` streaming](./docs/recipes/streaming.md)
+  - [`dataZoom` + `onZoomChange`](./docs/recipes/datazoom-basics.md)
+
 ## Examples
 
-See the runnable example app in [`examples/main.tsx`](./examples/main.tsx).
+- Runnable example app: [`examples/main.tsx`](./examples/main.tsx)
+- Run locally:
+  - `npm install`
+  - `npm run dev` (opens `http://localhost:3000/examples/index.html`)
 
 ## Development
 
@@ -208,7 +230,7 @@ npm run dev
 
 The dev server will start at `http://localhost:3000` and open the examples page automatically.
 
-### Local Development with Linked ChartGPU
+### Local development with linked ChartGPU
 
 To develop `chartgpu-react` against a local version of the `chartgpu` package (useful for testing changes across both repositories):
 
@@ -235,7 +257,7 @@ npm unlink chartgpu
 npm install
 ```
 
-## Type Exports
+## Type exports
 
 The package re-exports common types from ChartGPU for convenience:
 
@@ -255,7 +277,7 @@ import type {
 } from 'chartgpu-react';
 ```
 
-## Browser Compatibility
+## Browser support (WebGPU required)
 
 WebGPU is required. Check support at runtime:
 
@@ -268,6 +290,10 @@ const checkSupport = async () => {
   return true;
 };
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. If you’re planning a larger change, open an issue first so we can discuss direction.
 
 ## License
 
