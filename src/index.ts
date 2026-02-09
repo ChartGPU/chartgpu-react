@@ -13,11 +13,15 @@ export type {
   ChartInstance,
   ClickParams,
   MouseOverParams,
+  ZoomRange,
 } from './types';
 
 // useChartGPU hook (Story 6.19)
 export { useChartGPU } from './useChartGPU';
 export type { UseChartGPUResult } from './useChartGPU';
+
+// Chart sync hook (connectCharts) - ChartGPU v0.2.3+
+export { useConnectCharts } from './useConnectCharts';
 
 /**
  * @deprecated Use `ChartGPU` instead. `ChartGPUChart` is kept for backward compatibility.
@@ -31,6 +35,10 @@ export { ChartGPUChart } from './ChartGPUChart';
  */
 export type { ChartGPUChartProps } from './ChartGPUChart';
 
+// Re-export chartgpu helpers (avoid colliding with our `ChartGPU` React component)
+export { createChart, connectCharts } from 'chartgpu';
+export { createAnnotationAuthoring } from './createAnnotationAuthoring';
+
 // Re-export types from chartgpu for convenience
 // This provides a single import point for all ChartGPU types
 export type {
@@ -42,17 +50,28 @@ export type {
   ChartGPUEventPayload,
   ChartGPUCrosshairMovePayload,
   
+  // Annotation authoring
+  AnnotationAuthoringInstance,
+  AnnotationAuthoringOptions,
+  AnnotationConfig,
+
   // Series configurations
   AreaSeriesConfig,
   LineSeriesConfig,
   BarSeriesConfig,
   PieSeriesConfig,
   ScatterSeriesConfig,
+  CandlestickSeriesConfig,
   SeriesConfig,
   
   // Data types
   DataPoint,
+  OHLCDataPoint,
+  ScatterPointTuple,
   
+  // Zoom / interaction
+  DataZoomConfig,
+
   // Theme configuration
   ThemeConfig,
   ThemeName,

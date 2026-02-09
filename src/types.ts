@@ -8,9 +8,18 @@ import type {
   ChartGPUOptions,
   ChartGPUInstance,
   ChartGPUEventPayload,
-  ThemeConfig,
   DataPoint,
+  OHLCDataPoint,
+  ChartGPUCrosshairMovePayload,
 } from 'chartgpu';
+
+/**
+ * Bivariant callback helper (matches React's event handler variance behavior).
+ * This preserves backwards-compatibility for userland handlers.
+ */
+type BivariantCallback<T extends (...args: any[]) => any> = {
+  bivarianceHack(...args: Parameters<T>): ReturnType<T>;
+}['bivarianceHack'];
 
 /**
  * Type alias for the ChartGPU instance.
@@ -32,6 +41,13 @@ export type ClickParams = ChartGPUEventPayload;
 export type MouseOverParams = ChartGPUEventPayload;
 
 /**
+ * Zoom range type derived from the upstream ChartGPU instance.
+ * Note: upstream returns `null` when zoom is disabled; `onZoomChange` only
+ * fires for a non-null range.
+ */
+export type ZoomRange = NonNullable<ReturnType<ChartGPUInstance['getZoomRange']>>;
+
+/**
  * Props interface for the ChartGPU React component.
  *
  * This component provides a declarative React wrapper around the imperative
@@ -46,9 +62,9 @@ export interface ChartGPUProps {
 
   /**
    * Optional theme configuration.
-   * Can be either a string identifier or a full ThemeConfig object.
+   * Matches upstream `ChartGPUOptions['theme']` (`'dark' | 'light' | ThemeConfig`).
    */
-  theme?: string | ThemeConfig;
+  theme?: ChartGPUOptions['theme'];
 
   /**
    * Optional inline styles for the chart container element.
@@ -85,14 +101,21 @@ export interface ChartGPUProps {
   /**
    * Callback invoked when the mouse leaves a chart element.
    */
-  onMouseOut?: () => void;
+  onMouseOut?: (params: ChartGPUEventPayload) => void;
+
+  /**
+   * Callback invoked when the crosshair moves.
+   *
+   * @param payload - Crosshair move payload containing domain-space x and optional source
+   */
+  onCrosshairMove?: (payload: ChartGPUCrosshairMovePayload) => void;
 
   /**
    * Callback invoked when the chart zoom range changes.
    *
    * @param range - The new zoom range with start and end values
    */
-  onZoomChange?: (range: { start: number; end: number }) => void;
+  onZoomChange?: BivariantCallback<(range: ZoomRange) => void>;
 }
 
 /**
@@ -119,13 +142,19 @@ export interface ChartGPUHandle {
   getChart(): ChartGPUInstance | null;
 
   /**
+   * Get the container element used to mount the chart.
+   * Useful for wiring up helpers like `createAnnotationAuthoring(...)`.
+   */
+  getContainer(): HTMLDivElement | null;
+
+  /**
    * Append new data points to an existing series.
    * This is more efficient than replacing the entire dataset.
    *
    * @param seriesIndex - Zero-based index of the series to update
    * @param newPoints - Array of data points to append
    */
-  appendData(seriesIndex: number, newPoints: DataPoint[]): void;
+  appendData(seriesIndex: number, newPoints: DataPoint[] | OHLCDataPoint[]): void;
 
   /**
    * Replace the entire chart options.
@@ -140,4 +169,11 @@ export interface ChartGPUHandle {
  * Re-export ThemeConfig for convenience.
  * This allows consumers to import all types from the wrapper package.
  */
-export type { ThemeConfig, ChartGPUOptions, DataPoint } from 'chartgpu';
+export type {
+  ThemeConfig,
+  ChartGPUOptions,
+  ChartGPUEventPayload,
+  ChartGPUCrosshairMovePayload,
+  DataPoint,
+  OHLCDataPoint,
+} from 'chartgpu';

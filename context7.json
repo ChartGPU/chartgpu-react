@@ -1,0 +1,16 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "chartgpu-react",
+  "description": "React bindings for ChartGPU — a WebGPU-powered charting library.",
+  "folders": ["docs", "examples"],
+  "excludeFolders": ["node_modules", "dist", "coverage", ".git", ".github", ".cursor"],
+  "excludeFiles": ["IMPLEMENTATION_REPORT.md", "package-lock.json"],
+  "rules": [
+    "Prefer the `ChartGPU` component; `ChartGPUChart` is deprecated and will be removed in a future major version.",
+    "`options` is treated as a full replacement object; `setOption()` does not partial-merge.",
+    "For streaming/real-time updates, prefer `ChartGPUHandle.appendData()` over replacing `options.series[].data`.",
+    "If you use `createAnnotationAuthoring(container, chart, ...)`, dispose the authoring instance before disposing the chart.",
+    "Ensure the chart container has an explicit, non-zero height; otherwise the chart may render blank.",
+    "In React 18 StrictMode (dev), effects run twice (mount→unmount→mount); avoid retaining stale chart instances outside refs/onReady."
+  ]
+}
