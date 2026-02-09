@@ -12,5 +12,7 @@
     "If you use `createAnnotationAuthoring(container, chart, ...)`, dispose the authoring instance before disposing the chart.",
     "Ensure the chart container has an explicit, non-zero height; otherwise the chart may render blank.",
     "In React 18 StrictMode (dev), effects run twice (mount→unmount→mount); avoid retaining stale chart instances outside refs/onReady."
-  ]
+  ],
+  "url": "https://context7.com/chartgpu/chartgpu-react",
+  "public_key": "pk_8QNeg6DDgVImbbajzdevV"
 }
