@@ -380,7 +380,6 @@ function ScatterDensityExample() {
       xAxis: { type: 'value' },
       yAxis: { type: 'value' },
       tooltip: { show: true, trigger: 'axis' },
-      dataZoom: [{ type: 'inside' }, { type: 'slider' }],
       grid: { left: 60, right: 40, top: 40, bottom: 40 },
     }),
     [scatterData]

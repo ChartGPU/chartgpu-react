@@ -30,7 +30,6 @@ export function ScatterDensityChart() {
       xAxis: { type: 'value' },
       yAxis: { type: 'value' },
       tooltip: { show: true, trigger: 'axis' },
-      dataZoom: [{ type: 'inside' }, { type: 'slider' }],
       series: [
         {
           type: 'scatter',
