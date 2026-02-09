@@ -1,7 +1,7 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { ChartGPU } from 'chartgpu';
 import type { ChartGPUOptions, ChartGPUInstance } from 'chartgpu';
+import { ChartGPU } from './ChartGPU';
 
 export interface ChartGPUChartProps {
   /**
@@ -58,6 +58,10 @@ export interface ChartGPUChartProps {
  * />
  * ```
  */
+/**
+ * @deprecated Use `ChartGPU` instead. `ChartGPUChart` is kept for backward compatibility.
+ * Will be removed in a future major version.
+ */
 export function ChartGPUChart({
   options,
   className,
@@ -65,85 +69,29 @@ export function ChartGPUChart({
   onInit,
   onDispose,
 }: ChartGPUChartProps): JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const instanceRef = useRef<ChartGPUInstance | null>(null);
-  const mountedRef = useRef<boolean>(false);
+  const didInitRef = useRef(false);
 
-  // Initialize chart on mount
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    mountedRef.current = true;
-    let chartInstance: ChartGPUInstance | null = null;
-
-    const initChart = async () => {
-      try {
-        if (!containerRef.current) return;
-
-        // Create ChartGPU instance
-        chartInstance = await ChartGPU.create(containerRef.current, options);
-
-        // Only update state if still mounted
-        if (mountedRef.current) {
-          instanceRef.current = chartInstance;
-          onInit?.(chartInstance);
-        } else {
-          // Component unmounted during async create - dispose immediately
-          chartInstance.dispose();
-        }
-      } catch (error) {
-        if (mountedRef.current) {
-          console.error('Failed to create ChartGPU instance:', error);
-        }
-      }
-    };
-
-    initChart();
-
-    // Cleanup on unmount
     return () => {
-      mountedRef.current = false;
-
-      if (instanceRef.current && !instanceRef.current.disposed) {
-        instanceRef.current.dispose();
-        instanceRef.current = null;
+      if (didInitRef.current) {
         onDispose?.();
       }
     };
-  }, []); // Empty deps - only run on mount/unmount
-
-  // Update chart options when they change
-  useEffect(() => {
-    const instance = instanceRef.current;
-    if (!instance || instance.disposed) return;
-
-    // setOption will trigger a re-render internally
-    instance.setOption(options);
-  }, [options]);
-
-  // Handle window resize
-  const handleResize = useCallback(() => {
-    const instance = instanceRef.current;
-    if (!instance || instance.disposed) return;
-    instance.resize();
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [handleResize]);
+  }, [onDispose]);
 
   return (
-    <div
-      ref={containerRef}
+    <ChartGPU
       className={className}
       style={{
         position: 'relative',
         width: '100%',
         height: '400px',
         ...style,
+      }}
+      options={options}
+      onReady={(instance: ChartGPUInstance) => {
+        didInitRef.current = true;
+        onInit?.(instance);
       }}
     />
   );
