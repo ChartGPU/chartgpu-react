@@ -34,7 +34,7 @@ export default defineConfig(({ command }) => {
         fileName: () => 'index.js',
       },
       rollupOptions: {
-        external: ['react', 'react-dom', 'react/jsx-runtime', 'chartgpu'],
+        external: ['react', 'react-dom', 'react/jsx-runtime', '@chartgpu/chartgpu'],
         output: {
           preserveModules: false,
         },

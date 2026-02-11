@@ -8,7 +8,7 @@ import type {
   ChartGPUOptions,
   ScatterPointTuple,
 } from '../src';
-import type { OHLCDataPoint } from 'chartgpu';
+import type { OHLCDataPoint } from '@chartgpu/chartgpu';
 
 type Candle = Extract<
   OHLCDataPoint,

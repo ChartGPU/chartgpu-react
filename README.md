@@ -1,30 +1,37 @@
-# chartgpu-react
+<p align="center" style="margin-bottom:0; margin-top:20px;">
+  <img src="docs/assets/chartgpu.png" alt="ChartGPU" width="400">
+</p>
 
 <p align="center">
-  React bindings for <a href="https://github.com/ChartGPU/ChartGPU">ChartGPU</a> — WebGPU-powered charting for high-performance data visualization.
+  React bindings for <a href="https://github.com/ChartGPU/ChartGPU">ChartGPU</a> — The fastest open-source charting library — 50M points at 60 FPS.
 </p>
 
 <div align="center">
 
+[<img src="docs/assets/powered-by-webgpu.svg" alt="Powered by WebGPU" height="28" />](https://forthebadge.com)
 [![Documentation](https://img.shields.io/badge/Documentation-Getting%20Started-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/blob/main/docs/GETTING_STARTED.md)
 [![API Reference](https://img.shields.io/badge/API-Reference-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/blob/main/docs/API.md)
 [![Examples](https://img.shields.io/badge/Examples-Run%20Locally-blue?style=for-the-badge)](https://github.com/chartgpu/chartgpu-react/tree/main/examples)
-
 [![npm version](https://img.shields.io/npm/v/chartgpu-react?style=for-the-badge&color=blue)](https://www.npmjs.com/package/chartgpu-react)
 [![NPM Downloads](https://img.shields.io/npm/dm/chartgpu-react?style=for-the-badge&color=%2368cc49)](https://www.npmjs.com/package/chartgpu-react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://www.npmjs.com/package/chartgpu-react)
 
+[<img src="https://hackerbadge.now.sh/api?id=46706528" alt="Featured on Hacker News" height="30" />](https://news.ycombinator.com/item?id=46706528)
+
+[<img src="https://awesome.re/mentioned-badge.svg" alt="Featured in Awesome WebGPU" style="height: 30px;" />](https://github.com/mikbry/awesome-webgpu)
+
+
 </div>
 
-`chartgpu-react` is a **thin React + TypeScript wrapper** around the [`chartgpu`](https://www.npmjs.com/package/chartgpu) core library.
+`chartgpu-react` is a **thin React + TypeScript wrapper** around the [`@chartgpu/chartgpu`](https://www.npmjs.com/package/@chartgpu/chartgpu) core library.
 
 ## Highlights
 
 - **`ChartGPU` component (recommended)**: async create/dispose lifecycle + debounced `ResizeObserver` sizing
 - **Event props**: `onClick`, `onCrosshairMove`, `onZoomChange`, etc.
-- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`)
-- **Hooks**: `useChartGPU(...)`, `useConnectCharts(...)`
-- **Helper re-exports (from `chartgpu`)**: `createChart`, `connectCharts`, `createAnnotationAuthoring`
+- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`)
+- **Hooks**: `useChartGPU(...)`, `useConnectCharts(..., syncOptions?)`
+- **Helper re-exports (from `@chartgpu/chartgpu`)**: `createChart`, `connectCharts`, `createAnnotationAuthoring`
 
 ## Quick start
 
@@ -60,7 +67,7 @@ function MyChart() {
 ## Installation
 
 ```bash
-npm install chartgpu-react chartgpu react react-dom
+npm install chartgpu-react @chartgpu/chartgpu react react-dom
 ```
 
 ### Requirements
@@ -79,20 +86,20 @@ Check browser compatibility at [caniuse.com/webgpu](https://caniuse.com/webgpu).
   - lifecycle management (async create + dispose)
   - `ResizeObserver` resize (debounced)
   - event props: `onClick`, `onCrosshairMove`, `onZoomChange`, etc.
-  - imperative `ref` API: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`)
+  - imperative `ref` API: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`)
 - **Hooks**
   - `useChartGPU(containerRef, options)` — create/manage a chart instance
-  - `useConnectCharts([chartA, chartB, ...])` — sync crosshair/interaction-x across charts
+  - `useConnectCharts([chartA, chartB, ...], syncOptions?)` — sync crosshair/interaction-x (and optionally zoom) across charts
 - **Deprecated**
   - `ChartGPUChart` (legacy adapter; use `ChartGPU` instead)
-- **Helper re-exports** (from peer dependency `chartgpu`)
+- **Helper re-exports** (from peer dependency `@chartgpu/chartgpu`)
   - `createChart`, `connectCharts`, `createAnnotationAuthoring`
 
 For details, start with the [API reference](./docs/API.md).
 
 ## Feature snippets (ChartGPU core)
 
-These snippets use helpers and events from the `chartgpu` core library (peer dependency of `chartgpu-react`).
+These snippets use helpers and events from the `@chartgpu/chartgpu` core library (peer dependency of `chartgpu-react`).
 
 ### Crosshair / interaction X (`'crosshairMove'`)
 
@@ -112,16 +119,19 @@ import type { ChartGPUCrosshairMovePayload } from 'chartgpu-react';
 ### Connect charts (sync crosshair/tooltip)
 
 ```tsx
-import { connectCharts } from 'chartgpu';
+import { connectCharts } from 'chartgpu-react';
 
 // When you have two ChartGPUInstance objects:
 const disconnect = connectCharts([chartA, chartB]);
+
+// With zoom sync:
+// const disconnect = connectCharts([chartA, chartB], { syncZoom: true });
 
 // Later:
 disconnect();
 ```
 
-If you prefer a hook-driven approach, you can use `onReady` (or `useChartGPU`) to capture instances, then call `connectCharts(...)` once both are available.
+If you prefer a hook-driven approach, you can use `onReady` (or `useChartGPU`) to capture instances, then call `useConnectCharts(...)` once both are available.
 
 ### Annotation authoring UI (`createAnnotationAuthoring`)
 
@@ -158,7 +168,7 @@ function AnnotationAuthoringExample() {
 import { useEffect, useRef } from 'react';
 import { ChartGPU } from 'chartgpu-react';
 import type { ChartGPUHandle, ChartGPUOptions } from 'chartgpu-react';
-import type { OHLCDataPoint } from 'chartgpu';
+import type { OHLCDataPoint } from 'chartgpu-react';
 
 function CandlestickStreaming() {
   const ref = useRef<ChartGPUHandle>(null);
@@ -232,28 +242,28 @@ The dev server will start at `http://localhost:3000` and open the examples page 
 
 ### Local development with linked ChartGPU
 
-To develop `chartgpu-react` against a local version of the `chartgpu` package (useful for testing changes across both repositories):
+To develop `chartgpu-react` against a local version of the `@chartgpu/chartgpu` package (useful for testing changes across both repositories):
 
 ```bash
-# 1. Link the chartgpu package from the sibling repo
+# 1. Link the @chartgpu/chartgpu package from the sibling repo
 cd ../chart-gpu
 npm link
 
-# 2. Link chartgpu into this project
+# 2. Link @chartgpu/chartgpu into this project
 cd ../chartgpu-react
-npm link chartgpu
+npm link @chartgpu/chartgpu
 
 # 3. Build and run - will use the linked local package
 npm run build
 npm run dev
 ```
 
-**Note:** After linking, `npm run build` and `npm run dev` will resolve imports to your local `chartgpu` package instead of the published version. This allows you to test changes in both repos simultaneously.
+**Note:** After linking, `npm run build` and `npm run dev` will resolve imports to your local `@chartgpu/chartgpu` package instead of the published version. This allows you to test changes in both repos simultaneously.
 
 To unlink and return to the published package:
 
 ```bash
-npm unlink chartgpu
+npm unlink @chartgpu/chartgpu
 npm install
 ```
 
@@ -267,13 +277,25 @@ import type {
   ChartGPUOptions,
   ChartGPUEventPayload,
   ChartGPUCrosshairMovePayload,
+  ChartGPUZoomRangeChangePayload,
+  ChartGPUHitTestResult,
+  ChartGPUHitTestMatch,
+  ChartSyncOptions,
   AreaSeriesConfig,
   LineSeriesConfig,
   BarSeriesConfig,
   PieSeriesConfig,
   ScatterSeriesConfig,
   SeriesConfig,
+  LineStyleConfig,
+  AreaStyleConfig,
   DataPoint,
+  LegendConfig,
+  LegendPosition,
+  AnimationConfig,
+  TooltipConfig,
+  TooltipParams,
+  PerformanceMetrics,
 } from 'chartgpu-react';
 ```
 
@@ -293,7 +315,7 @@ const checkSupport = async () => {
 
 ## Contributing
 
-Issues and pull requests are welcome. If you’re planning a larger change, open an issue first so we can discuss direction.
+Issues and pull requests are welcome. If you're planning a larger change, open an issue first so we can discuss direction.
 
 ## License
 

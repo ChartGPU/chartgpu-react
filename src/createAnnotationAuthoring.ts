@@ -5,7 +5,7 @@ import {
   type AnnotationConfig,
   type ChartGPUInstance,
   type ChartGPUOptions,
-} from 'chartgpu';
+} from '@chartgpu/chartgpu';
 
 type GridBox = Readonly<{ left: number; right: number; top: number; bottom: number }>;
 

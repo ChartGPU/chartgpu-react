@@ -6,7 +6,7 @@ import {
   forwardRef,
   useCallback,
 } from 'react';
-import { ChartGPU as ChartGPULib } from 'chartgpu';
+import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
 import type {
   ChartGPUProps,
   ChartGPUHandle,
@@ -14,7 +14,7 @@ import type {
   ClickParams,
   MouseOverParams,
 } from './types';
-import type { ChartGPUOptions } from 'chartgpu';
+import type { ChartGPUOptions, ChartGPUZoomRangeChangePayload } from '@chartgpu/chartgpu';
 
 /**
  * Debounce utility for throttling frequent calls.
@@ -45,7 +45,7 @@ function debounce<T extends (...args: any[]) => void>(
  * - Automatic resize handling via ResizeObserver
  * - Theme support with options override
  * - Declarative event handlers
- * - Zoom change detection via polling
+ * - Zoom change detection via event subscription
  * - Imperative methods via forwardRef
  *
  * Example usage:
@@ -82,12 +82,6 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
     const [chart, setChart] = useState<ChartInstance | null>(null);
     const mountedRef = useRef<boolean>(false);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
-    const zoomPollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-      null
-    );
-    const lastZoomRangeRef = useRef<ReturnType<ChartInstance['getZoomRange']>>(
-      null
-    );
 
     // Expose imperative handle
     useImperativeHandle(
@@ -106,6 +100,39 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           if (instance && !instance.disposed) {
             instance.setOption(newOptions);
           }
+        },
+        setZoomRange: (start: number, end: number) => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            instance.setZoomRange(start, end);
+          }
+        },
+        setInteractionX: (x: number | null, source?: unknown) => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            instance.setInteractionX(x, source);
+          }
+        },
+        getInteractionX: () => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            return instance.getInteractionX();
+          }
+          return null;
+        },
+        hitTest: (e: PointerEvent | MouseEvent) => {
+          const instance = instanceRef.current;
+          if (!instance || instance.disposed) {
+            return {
+              isInGrid: false,
+              canvasX: NaN,
+              canvasY: NaN,
+              gridX: NaN,
+              gridY: NaN,
+              match: null,
+            };
+          }
+          return instance.hitTest(e);
         },
       }),
       []
@@ -190,8 +217,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       instance.on('click', handler);
 
       return () => {
-        if (instance && !instance.disposed) {
+        try {
           instance.off('click', handler);
+        } catch {
+          // instance may already be disposed; swallow
         }
       };
     }, [chart, onClick]);
@@ -208,8 +237,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       instance.on('mouseover', handler);
 
       return () => {
-        if (instance && !instance.disposed) {
+        try {
           instance.off('mouseover', handler);
+        } catch {
+          // instance may already be disposed; swallow
         }
       };
     }, [chart, onMouseOver]);
@@ -226,8 +257,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       instance.on('mouseout', handler);
 
       return () => {
-        if (instance && !instance.disposed) {
+        try {
           instance.off('mouseout', handler);
+        } catch {
+          // instance may already be disposed; swallow
         }
       };
     }, [chart, onMouseOut]);
@@ -244,8 +277,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       instance.on('crosshairMove', handler);
 
       return () => {
-        if (instance && !instance.disposed) {
+        try {
           instance.off('crosshairMove', handler);
+        } catch {
+          // instance may already be disposed; swallow
         }
       };
     }, [chart, onCrosshairMove]);
@@ -277,49 +312,34 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chart]); // Re-run when instance changes
 
-    // Set up zoom change polling (100ms interval)
+    // Register/unregister zoomRangeChange event handler.
+    // Also emits the current zoom range once on subscribe (initial hydration)
+    // so consumers don't need to wait for user interaction to receive the first value.
     useEffect(() => {
       const instance = chart;
       if (!instance || instance.disposed || !onZoomChange) return;
 
-      const checkZoomChange = () => {
-        if (!instance || instance.disposed) return;
-
-        const currentRange = instance.getZoomRange();
-        const lastRange = lastZoomRangeRef.current;
-
-        // Check if zoom range changed
-        if (currentRange !== null) {
-          if (
-            lastRange === null ||
-            lastRange.start !== currentRange.start ||
-            lastRange.end !== currentRange.end
-          ) {
-            lastZoomRangeRef.current = currentRange;
-            onZoomChange(currentRange);
-          }
-        } else {
-          // Range is null (no zoom), reset last range
-          if (lastRange !== null) {
-            lastZoomRangeRef.current = null;
-          }
-        }
+      const handler = (payload: ChartGPUZoomRangeChangePayload) => {
+        // Map upstream payload to ZoomRange (strip `source`)
+        onZoomChange({ start: payload.start, end: payload.end });
       };
 
-      const intervalId = setInterval(checkZoomChange, 100);
-      zoomPollIntervalRef.current = intervalId;
+      instance.on('zoomRangeChange', handler);
 
-      // Initial check
-      checkZoomChange();
+      // Hydrate: fire once with the current zoom range (if non-null)
+      const current = instance.getZoomRange();
+      if (current) {
+        onZoomChange({ start: current.start, end: current.end });
+      }
 
       return () => {
-        if (zoomPollIntervalRef.current) {
-          clearInterval(zoomPollIntervalRef.current);
-          zoomPollIntervalRef.current = null;
+        try {
+          instance.off('zoomRangeChange', handler);
+        } catch {
+          // instance may already be disposed; swallow
         }
-        lastZoomRangeRef.current = null;
       };
-    }, [chart, onZoomChange]); // Re-run when instance or callback changes
+    }, [chart, onZoomChange]);
 
     return (
       <div

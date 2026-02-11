@@ -3,7 +3,7 @@
 This package provides two hooks:
 
 - `useChartGPU(containerRef, options)` — create/manage a `ChartGPUInstance`
-- `useConnectCharts(charts)` — connect instances for synced crosshair/interaction-x
+- `useConnectCharts(charts, syncOptions?)` — connect instances for synced crosshair/interaction-x (and optionally zoom)
 
 Related:
 
@@ -13,7 +13,7 @@ Related:
 
 ## `useChartGPU(containerRef, options)`
 
-Creates a `chartgpu` chart instance inside a DOM element that you control.
+Creates a `@chartgpu/chartgpu` chart instance inside a DOM element that you control.
 
 ### Import
 
@@ -81,9 +81,9 @@ export function HookChart() {
 }
 ```
 
-## `useConnectCharts(charts)`
+## `useConnectCharts(charts, syncOptions?)`
 
-Connects multiple `ChartGPUInstance`s so they share interaction state (crosshair/tooltip x).
+Connects multiple `ChartGPUInstance`s so they share interaction state (crosshair/tooltip x). Optionally syncs zoom/pan across charts.
 
 This hook is a React-friendly wrapper around the upstream helper `connectCharts(...)`.
 
@@ -91,26 +91,41 @@ This hook is a React-friendly wrapper around the upstream helper `connectCharts(
 
 ```ts
 import { useConnectCharts } from 'chartgpu-react';
-import type { ChartGPUInstance } from 'chartgpu-react';
+import type { ChartGPUInstance, ChartSyncOptions } from 'chartgpu-react';
 ```
 
 ### Signature
 
 ```ts
 function useConnectCharts(
-  charts: ReadonlyArray<ChartGPUInstance | null | undefined>
+  charts: ReadonlyArray<ChartGPUInstance | null | undefined>,
+  syncOptions?: ChartSyncOptions
 ): void;
 ```
+
+### `ChartSyncOptions`
+
+```ts
+type ChartSyncOptions = Readonly<{
+  syncCrosshair?: boolean; // default true
+  syncZoom?: boolean;      // default false
+}>;
+```
+
+- **`syncCrosshair`** (default `true`): sync crosshair + tooltip x across charts.
+- **`syncZoom`** (default `false`): sync zoom/pan range across charts.
 
 ### Behavior
 
 - Does nothing until all provided instances exist and are **not disposed**
 - Automatically disconnects when:
   - the hook unmounts, or
-  - the identity/disposed state of instances changes
-- If `connectCharts(...)` throws, the hook logs an error and avoids crashing your component tree
+  - the identity/disposed state of instances changes, or
+  - `syncOptions` changes
+- Reconnection is based on **option values**, not object identity — you can pass a new `syncOptions` object each render and the hook will only reconnect when the actual `syncCrosshair`/`syncZoom` values change
+- If `connectCharts(...)` throws, the hook logs an error (dev builds only) and avoids crashing your component tree
 
-### Example
+### Example: synced crosshair (default)
 
 ```tsx
 import { useMemo, useState } from 'react';
@@ -151,3 +166,14 @@ export function SyncedCharts() {
 }
 ```
 
+### Example: synced zoom
+
+```tsx
+useConnectCharts([a, b], { syncZoom: true });
+```
+
+This syncs both crosshair and zoom across the connected charts. To sync only zoom without crosshair:
+
+```tsx
+useConnectCharts([a, b], { syncCrosshair: false, syncZoom: true });
+```

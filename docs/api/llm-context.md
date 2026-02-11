@@ -1,6 +1,6 @@
 # chartgpu-react — LLM / Context7 documentation entrypoint
 
-This repository provides **React bindings** for the [`chartgpu`](https://www.npmjs.com/package/chartgpu) WebGPU charting library.
+This repository provides **React bindings** for the [`@chartgpu/chartgpu`](https://www.npmjs.com/package/@chartgpu/chartgpu) WebGPU charting library.
 
 The goal of this `llm-context.md` file is to give Context7 (and other LLM tooling) a **single, stable entrypoint** that maps common tasks to the right documentation pages and source files.
 
@@ -16,15 +16,15 @@ The goal of this `llm-context.md` file is to give Context7 (and other LLM toolin
   - `ChartGPUChart` (legacy / deprecated, thin adapter)
 - **Hooks**
   - `useChartGPU(containerRef, options)` — imperative hook for creating and managing a ChartGPU instance
-  - `useConnectCharts([chartA, chartB, ...])` — connect multiple charts for synced crosshair/tooltip
+  - `useConnectCharts([chartA, chartB, ...], syncOptions?)` — connect multiple charts for synced crosshair/tooltip (optionally sync zoom)
 - **Core helpers**
-  - `createChart` (re-exported from `chartgpu`)
-  - `connectCharts` (re-exported from `chartgpu`)
-  - `createAnnotationAuthoring` (wrapper around `chartgpu`’s helper; includes a fix for `chartgpu@0.2.3` text annotation context-menu hit-testing)
+  - `createChart` (re-exported from `@chartgpu/chartgpu`)
+  - `connectCharts` (re-exported from `@chartgpu/chartgpu`)
+  - `createAnnotationAuthoring` (wrapper around `@chartgpu/chartgpu`'s helper; includes a legacy fix for text annotation context-menu hit-testing, now fixed upstream in v0.2.5)
 - **Types**
   - Wrapper types: `ChartGPUProps`, `ChartGPUHandle`, `ZoomRange`
   - Re-exported core types: `ChartGPUOptions`, `ChartGPUInstance`, `ChartGPUEventPayload`, `ChartGPUCrosshairMovePayload`,
-    `DataPoint`, `OHLCDataPoint`, `AnnotationConfig`, `DataZoomConfig`, etc.
+    `ChartGPUZoomRangeChangePayload`, `ChartSyncOptions`, `ChartGPUHitTestResult`, `DataPoint`, `OHLCDataPoint`, `AnnotationConfig`, `DataZoomConfig`, etc.
 
 ## Task → doc page mapping
 
@@ -58,4 +58,3 @@ The goal of this `llm-context.md` file is to give Context7 (and other LLM toolin
 - Legacy component: `src/ChartGPUChart.tsx`
 - Hooks: `src/useChartGPU.ts`, `src/useConnectCharts.ts`
 - Public wrapper types: `src/types.ts`
-

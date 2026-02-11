@@ -7,10 +7,13 @@ You can do this:
 - manually with `connectCharts(...)`, or
 - with the React hook `useConnectCharts(...)` (recommended in React apps)
 
+Both accept an optional `ChartSyncOptions` parameter to control what is synced.
+
 Related:
 
-- [`useConnectCharts`](../api/hooks.md#useconnectchartscharts)
+- [`useConnectCharts`](../api/hooks.md#useconnectchartscharts-syncoptions)
 - [Crosshair move recipe](./crosshair-move.md)
+- [dataZoom basics](./datazoom-basics.md)
 
 ## Option A: `useConnectCharts` (recommended)
 
@@ -55,9 +58,23 @@ export function SyncedCharts() {
 }
 ```
 
+### Zoom sync
+
+To also sync zoom/pan across charts, pass `syncOptions`:
+
+```tsx
+useConnectCharts([a, b], { syncZoom: true });
+```
+
+This keeps both crosshair and zoom range in sync. To sync only zoom:
+
+```tsx
+useConnectCharts([a, b], { syncCrosshair: false, syncZoom: true });
+```
+
 ## Option B: manual `connectCharts(...)`
 
-`connectCharts` is a helper from the peer dependency `chartgpu`. `chartgpu-react` re-exports it for convenience:
+`connectCharts` is a helper from the peer dependency `@chartgpu/chartgpu`. `chartgpu-react` re-exports it for convenience:
 
 ```ts
 import { connectCharts } from 'chartgpu-react';
@@ -77,7 +94,8 @@ export function ManualSync() {
   useEffect(() => {
     if (!a || a.disposed) return;
     if (!b || b.disposed) return;
-    const disconnect = connectCharts([a, b]);
+    // Pass syncOptions as the second argument (optional)
+    const disconnect = connectCharts([a, b], { syncZoom: true });
     return () => disconnect();
   }, [a, b]);
 
@@ -101,8 +119,20 @@ export function ManualSync() {
 }
 ```
 
+## `ChartSyncOptions`
+
+```ts
+type ChartSyncOptions = Readonly<{
+  syncCrosshair?: boolean; // default true
+  syncZoom?: boolean;      // default false
+}>;
+```
+
+- **`syncCrosshair`** (default `true`): sync crosshair + tooltip x across charts.
+- **`syncZoom`** (default `false`): sync zoom/pan range across charts.
+
 ## Notes
 
 - Always disconnect on cleanup to avoid leaking listeners.
 - Only connect charts that are initialized and not disposed.
-
+- When `syncZoom` is enabled, all connected charts should have compatible `dataZoom` configs for best results.

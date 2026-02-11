@@ -36,20 +36,28 @@ export { ChartGPUChart } from './ChartGPUChart';
 export type { ChartGPUChartProps } from './ChartGPUChart';
 
 // Re-export chartgpu helpers (avoid colliding with our `ChartGPU` React component)
-export { createChart, connectCharts } from 'chartgpu';
+export { createChart, connectCharts } from '@chartgpu/chartgpu';
 export { createAnnotationAuthoring } from './createAnnotationAuthoring';
 
-// Re-export types from chartgpu for convenience
+// Re-export types from @chartgpu/chartgpu for convenience
 // This provides a single import point for all ChartGPU types
 export type {
   // Core instance and options
   ChartGPUInstance,
   ChartGPUOptions,
-  
+
   // Event payloads
   ChartGPUEventPayload,
   ChartGPUCrosshairMovePayload,
-  
+  ChartGPUZoomRangeChangePayload,
+
+  // Hit testing
+  ChartGPUHitTestResult,
+  ChartGPUHitTestMatch,
+
+  // Chart sync
+  ChartSyncOptions,
+
   // Annotation authoring
   AnnotationAuthoringInstance,
   AnnotationAuthoringOptions,
@@ -63,20 +71,38 @@ export type {
   ScatterSeriesConfig,
   CandlestickSeriesConfig,
   SeriesConfig,
-  
+
+  // Style configurations
+  LineStyleConfig,
+  AreaStyleConfig,
+
   // Data types
   DataPoint,
   OHLCDataPoint,
   ScatterPointTuple,
-  
+
   // Zoom / interaction
   DataZoomConfig,
+
+  // Legend
+  LegendConfig,
+  LegendPosition,
+
+  // Animation
+  AnimationConfig,
+
+  // Tooltip
+  TooltipConfig,
+  TooltipParams,
+
+  // Performance
+  PerformanceMetrics,
 
   // Theme configuration
   ThemeConfig,
   ThemeName,
-  
+
   // Axis and grid configurations
   AxisConfig,
   GridConfig,
-} from 'chartgpu';
+} from '@chartgpu/chartgpu';

@@ -8,10 +8,11 @@ import type {
   ChartGPUOptions,
   ChartGPUInstance,
   ChartGPUEventPayload,
+  ChartGPUHitTestResult,
   DataPoint,
   OHLCDataPoint,
   ChartGPUCrosshairMovePayload,
-} from 'chartgpu';
+} from '@chartgpu/chartgpu';
 
 /**
  * Bivariant callback helper (matches React's event handler variance behavior).
@@ -163,6 +164,38 @@ export interface ChartGPUHandle {
    * @param options - New complete chart configuration
    */
   setOption(options: ChartGPUOptions): void;
+
+  /**
+   * Programmatically set the zoom range (percent-space).
+   * No-op when zoom is disabled on the chart.
+   *
+   * @param start - Start of zoom range (0-100)
+   * @param end - End of zoom range (0-100)
+   */
+  setZoomRange(start: number, end: number): void;
+
+  /**
+   * Programmatically drive the crosshair / tooltip to a domain-space x value.
+   * Passing `null` clears the crosshair.
+   *
+   * @param x - Domain-space x value, or null to clear
+   * @param source - Optional source identifier (useful for sync disambiguation)
+   */
+  setInteractionX(x: number | null, source?: unknown): void;
+
+  /**
+   * Read the current interaction x (domain units), or `null` when inactive.
+   */
+  getInteractionX(): number | null;
+
+  /**
+   * Perform hit-testing on a pointer or mouse event.
+   * Returns coordinates and matched chart element (if any).
+   *
+   * @param e - Pointer or mouse event to test
+   * @returns Hit-test result with coordinates and optional match
+   */
+  hitTest(e: PointerEvent | MouseEvent): ChartGPUHitTestResult;
 }
 
 /**
@@ -176,4 +209,4 @@ export type {
   ChartGPUCrosshairMovePayload,
   DataPoint,
   OHLCDataPoint,
-} from 'chartgpu';
+} from '@chartgpu/chartgpu';

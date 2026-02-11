@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
-import type { ChartGPUOptions, ChartGPUInstance } from 'chartgpu';
+import type { ChartGPUOptions, ChartGPUInstance } from '@chartgpu/chartgpu';
 import { ChartGPU } from './ChartGPU';
 
 export interface ChartGPUChartProps {

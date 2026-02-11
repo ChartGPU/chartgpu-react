@@ -1,6 +1,6 @@
 # API reference (chartgpu-react)
 
-This package is a **React wrapper** around the `chartgpu` core library. Most runtime behavior lives in `chartgpu`; this repo primarily provides:
+This package is a **React wrapper** around the `@chartgpu/chartgpu` core library. Most runtime behavior lives in `@chartgpu/chartgpu`; this repo primarily provides:
 
 - A React component (`ChartGPU`) with lifecycle + resize management
 - A small imperative ref API (`ChartGPUHandle`)
@@ -19,11 +19,11 @@ For an LLM-oriented navigation entrypoint, see [`docs/api/llm-context.md`](./api
 ### Hooks
 
 - **`useChartGPU(containerRef, options)`** — create/manage an instance imperatively
-- **`useConnectCharts([chartA, chartB, ...])`** — keep crosshair/interaction-x in sync
+- **`useConnectCharts([chartA, chartB, ...], syncOptions?)`** — keep crosshair/interaction-x in sync (optionally sync zoom)
 
 See [`docs/api/hooks.md`](./api/hooks.md).
 
-### Helper re-exports (from peer dependency `chartgpu`)
+### Helper re-exports (from peer dependency `@chartgpu/chartgpu`)
 
 `chartgpu-react` exposes these helpers so you can often import everything from one package:
 
@@ -31,8 +31,8 @@ See [`docs/api/hooks.md`](./api/hooks.md).
 - `connectCharts`
 - `createAnnotationAuthoring`
 
-- `createChart` / `connectCharts` are re-exported directly from `chartgpu`.
-- `createAnnotationAuthoring` is a thin wrapper around `chartgpu`’s helper that includes a small fix for `chartgpu@0.2.3`: the upstream authoring context menu hit-testing does not recognize `type: "text"` annotations, so **Edit** may not appear for text notes.
+- `createChart` / `connectCharts` are re-exported directly from `@chartgpu/chartgpu`.
+- `createAnnotationAuthoring` is a thin wrapper around `@chartgpu/chartgpu`'s helper that patches text-annotation context-menu hit-testing (broken in `chartgpu@0.2.3`). Upstream v0.2.5 fixes this natively; the wrapper is kept for API stability — the patch is harmless when running against v0.2.5+.
 
 ```ts
 import { connectCharts, createAnnotationAuthoring } from 'chartgpu-react';
@@ -56,13 +56,13 @@ From `src/types.ts`:
 
 - `ChartGPUProps` — props for the `ChartGPU` component
 - `ChartGPUHandle` — imperative ref API
-- `ChartInstance` — alias for `chartgpu`’s `ChartGPUInstance`
+- `ChartInstance` — alias for `@chartgpu/chartgpu`'s `ChartGPUInstance`
 - `ClickParams`, `MouseOverParams` — aliases for event payloads
 - `ZoomRange` — derived from `ChartGPUInstance['getZoomRange']` (non-null range)
 
-### Re-exported core types (from peer dependency `chartgpu`)
+### Re-exported core types (from peer dependency `@chartgpu/chartgpu`)
 
-From `src/index.ts`, this package re-exports a curated set of `chartgpu` types so consumers can do:
+From `src/index.ts`, this package re-exports a curated set of `@chartgpu/chartgpu` types so consumers can do:
 
 ```ts
 import type { ChartGPUOptions, ChartGPUInstance, DataPoint } from 'chartgpu-react';
@@ -71,11 +71,18 @@ import type { ChartGPUOptions, ChartGPUInstance, DataPoint } from 'chartgpu-reac
 Currently re-exported:
 
 - **Core**: `ChartGPUInstance`, `ChartGPUOptions`
-- **Events**: `ChartGPUEventPayload`, `ChartGPUCrosshairMovePayload`
+- **Events**: `ChartGPUEventPayload`, `ChartGPUCrosshairMovePayload`, `ChartGPUZoomRangeChangePayload`
+- **Hit testing**: `ChartGPUHitTestResult`, `ChartGPUHitTestMatch`
+- **Chart sync**: `ChartSyncOptions`
 - **Annotation authoring**: `AnnotationAuthoringInstance`, `AnnotationAuthoringOptions`, `AnnotationConfig`
 - **Series config**: `AreaSeriesConfig`, `LineSeriesConfig`, `BarSeriesConfig`, `PieSeriesConfig`, `ScatterSeriesConfig`, `CandlestickSeriesConfig`, `SeriesConfig`
+- **Style config**: `LineStyleConfig`, `AreaStyleConfig`
 - **Data**: `DataPoint`, `OHLCDataPoint`
 - **Interaction/zoom**: `DataZoomConfig`
+- **Legend**: `LegendConfig`, `LegendPosition`
+- **Animation**: `AnimationConfig`
+- **Tooltip**: `TooltipConfig`, `TooltipParams`
+- **Performance**: `PerformanceMetrics`
 - **Themes**: `ThemeConfig`, `ThemeName`
 - **Layout**: `AxisConfig`, `GridConfig`
 
@@ -109,10 +116,10 @@ See [`useChartGPU` docs](./api/hooks.md#usechartgpu).
 
 ### 4) Connecting charts (`useConnectCharts` / `connectCharts`)
 
-To sync crosshair / interaction-x across multiple charts, use:
+To sync crosshair / interaction-x (and optionally zoom) across multiple charts, use:
 
-- `useConnectCharts([chartA, chartB, ...])` (React-friendly)
-- or `connectCharts([chartA, chartB, ...])` (manual)
+- `useConnectCharts([chartA, chartB, ...], syncOptions?)` (React-friendly)
+- or `connectCharts([chartA, chartB, ...], syncOptions?)` (manual)
 
 See [Chart sync recipe](./recipes/chart-sync.md).
 
@@ -126,4 +133,3 @@ Step-by-step guides for common use cases:
 - [Streaming](./recipes/streaming.md) — realtime data updates with `appendData`
 - [dataZoom basics](./recipes/datazoom-basics.md) — zoom and pan with `dataZoom` + `onZoomChange`
 - [Scatter density](./recipes/scatter-density.md) — density heatmaps for large scatter datasets
-
