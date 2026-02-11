@@ -31,7 +31,7 @@ The props type is `ChartGPUProps` (defined in `src/types.ts`).
 | `onMouseOver` | `(payload: ChartGPUEventPayload) => void` |  | Wires to `chart.on('mouseover', ...)`. |
 | `onMouseOut` | `(payload: ChartGPUEventPayload) => void` |  | Wires to `chart.on('mouseout', ...)`. |
 | `onCrosshairMove` | `(payload: ChartGPUCrosshairMovePayload) => void` |  | Wires to `chart.on('crosshairMove', ...)`. |
-| `onZoomChange` | `(range: ZoomRange) => void` |  | Fires when `chart.getZoomRange()` changes (polled every 100ms). |
+| `onZoomChange` | `(range: ZoomRange) => void` |  | Fires on `zoomRangeChange` event. Also emits the current range once on subscribe (initial hydration). |
 
 ## Imperative ref (`ChartGPUHandle`)
 
@@ -41,6 +41,10 @@ The props type is `ChartGPUProps` (defined in `src/types.ts`).
 - `getContainer()`
 - `appendData(seriesIndex, newPoints)`
 - `setOption(options)`
+- `setZoomRange(start, end)`
+- `setInteractionX(x, source?)`
+- `getInteractionX()`
+- `hitTest(e)` — note: React synthetic events require `e.nativeEvent`
 
 See [`ChartGPUHandle`](./chartgpu-handle.md).
 
@@ -80,10 +84,9 @@ Resize calls are debounced (100ms).
 
 ### Zoom change events
 
-If you provide `onZoomChange`, the component polls `chart.getZoomRange()` every 100ms and fires the callback when:
+If you provide `onZoomChange`, the component subscribes to the upstream `zoomRangeChange` event and fires the callback whenever the zoom range changes.
 
-- the zoom range transitions from `null` → non-null, or
-- `start`/`end` values change.
+On subscribe, the component also reads the current zoom range via `getZoomRange()` and fires `onZoomChange` once if the range is non-null. This ensures consumers can hydrate UI state without waiting for user interaction.
 
 If zoom is disabled (`null`), no callback is fired.
 

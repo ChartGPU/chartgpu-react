@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChartGPU as ChartGPULib } from 'chartgpu';
-import type { ChartGPUOptions } from 'chartgpu';
+import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
+import type { ChartGPUOptions } from '@chartgpu/chartgpu';
 import type { ChartInstance } from './types';
 
 /**

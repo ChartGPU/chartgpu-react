@@ -5,6 +5,7 @@ Enable `dataZoom` to allow users to zoom/pan through data. The `ChartGPU` React 
 Related:
 
 - [`ChartGPU` props](../api/chartgpu-component.md#props)
+- [`ChartGPUHandle`](../api/chartgpu-handle.md) — programmatic zoom via `setZoomRange`
 - [Crosshair move recipe](./crosshair-move.md)
 
 ## Example
@@ -54,6 +55,6 @@ export function DataZoomExample() {
 
 ## Notes
 
-- `onZoomChange` is implemented by polling `chart.getZoomRange()` every 100ms and detecting changes.
+- `onZoomChange` subscribes to the native `zoomRangeChange` event on the chart instance (introduced in ChartGPU v0.2.5). No polling is involved.
 - If zoom is disabled, `getZoomRange()` returns `null` and the callback will not fire.
-
+- You can programmatically control the zoom range via the imperative ref: `chartRef.current?.setZoomRange(start, end)` (percent-space, 0–100). See [`ChartGPUHandle.setZoomRange`](../api/chartgpu-handle.md#setzoomrangestart-number-end-number-void).
