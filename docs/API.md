@@ -18,7 +18,7 @@ For an LLM-oriented navigation entrypoint, see [`docs/api/llm-context.md`](./api
 
 ### Hooks
 
-- **`useChartGPU(containerRef, options)`** — create/manage an instance imperatively
+- **`useChartGPU(containerRef, options, gpuContext?)`** — create/manage an instance imperatively (3rd param optional shared context; init-only)
 - **`useConnectCharts([chartA, chartB, ...], syncOptions?)`** — keep crosshair/interaction-x in sync (optionally sync zoom)
 
 See [`docs/api/hooks.md`](./api/hooks.md).
@@ -54,8 +54,8 @@ More recipes:
 
 From `src/types.ts`:
 
-- `ChartGPUProps` — props for the `ChartGPU` component
-- `ChartGPUHandle` — imperative ref API
+- `ChartGPUProps` — props for the `ChartGPU` component. Includes `gpuContext?` (init-only), `onDataAppend?` ↔ `'dataAppend'`, `onDeviceLost?` ↔ `'deviceLost'`
+- `ChartGPUHandle` — imperative ref API (`renderFrame`, `needsRender`, `getRenderMode`, `setRenderMode`, `appendData`, etc.)
 - `ChartInstance` — alias for `@chartgpu/chartgpu`'s `ChartGPUInstance`
 - `ClickParams`, `MouseOverParams` — aliases for event payloads
 - `ZoomRange` — derived from `ChartGPUInstance['getZoomRange']` (non-null range)
@@ -102,9 +102,10 @@ Start here: [`ChartGPU` component docs](./api/chartgpu-component.md).
 
 Use the ref API when you need:
 
-- `appendData` streaming
+- `appendData` streaming (Cartesian series data superset + OHLC array)
 - access to the underlying `ChartGPUInstance`
 - access to the container element (e.g. for annotation authoring UI overlays)
+- external render mode: `renderFrame()`, `needsRender()`, `getRenderMode()`, `setRenderMode()`
 
 See [`ChartGPUHandle` docs](./api/chartgpu-handle.md).
 

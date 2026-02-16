@@ -65,6 +65,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
   (
     {
       options,
+      gpuContext,
       theme,
       style,
       className,
@@ -73,6 +74,8 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       onMouseOver,
       onMouseOut,
       onCrosshairMove,
+      onDataAppend,
+      onDeviceLost,
       onZoomChange,
     },
     ref
@@ -82,6 +85,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
     const [chart, setChart] = useState<ChartInstance | null>(null);
     const mountedRef = useRef<boolean>(false);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    const gpuContextRef = useRef(gpuContext);
 
     // Expose imperative handle
     useImperativeHandle(
@@ -93,6 +97,33 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           const instance = instanceRef.current;
           if (instance && !instance.disposed) {
             instance.appendData(seriesIndex, newPoints);
+          }
+        },
+        renderFrame: () => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            return instance.renderFrame();
+          }
+          return false;
+        },
+        needsRender: () => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            return instance.needsRender();
+          }
+          return false;
+        },
+        getRenderMode: () => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            return instance.getRenderMode();
+          }
+          return 'auto';
+        },
+        setRenderMode: (mode) => {
+          const instance = instanceRef.current;
+          if (instance && !instance.disposed) {
+            instance.setRenderMode(mode);
           }
         },
         setOption: (newOptions: ChartGPUOptions) => {
@@ -161,10 +192,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           if (!containerRef.current) return;
 
           const effectiveOptions = getEffectiveOptions();
-          chartInstance = await ChartGPULib.create(
-            containerRef.current,
-            effectiveOptions
-          );
+          const ctx = gpuContextRef.current;
+          chartInstance = ctx
+            ? await ChartGPULib.create(containerRef.current, effectiveOptions, ctx)
+            : await ChartGPULib.create(containerRef.current, effectiveOptions);
 
           // StrictMode safety: only update state if still mounted
           if (mountedRef.current) {
@@ -284,6 +315,46 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
         }
       };
     }, [chart, onCrosshairMove]);
+
+    // Register/unregister dataAppend event handler
+    useEffect(() => {
+      const instance = chart;
+      if (!instance || instance.disposed || !onDataAppend) return;
+
+      const handler = (payload: Parameters<NonNullable<ChartGPUProps['onDataAppend']>>[0]) => {
+        onDataAppend(payload);
+      };
+
+      instance.on('dataAppend', handler);
+
+      return () => {
+        try {
+          instance.off('dataAppend', handler);
+        } catch {
+          // instance may already be disposed; swallow
+        }
+      };
+    }, [chart, onDataAppend]);
+
+    // Register/unregister deviceLost event handler
+    useEffect(() => {
+      const instance = chart;
+      if (!instance || instance.disposed || !onDeviceLost) return;
+
+      const handler = (payload: Parameters<NonNullable<ChartGPUProps['onDeviceLost']>>[0]) => {
+        onDeviceLost(payload);
+      };
+
+      instance.on('deviceLost', handler);
+
+      return () => {
+        try {
+          instance.off('deviceLost', handler);
+        } catch {
+          // instance may already be disposed; swallow
+        }
+      };
+    }, [chart, onDeviceLost]);
 
     // Set up ResizeObserver for responsive sizing (debounced 100ms)
     useEffect(() => {

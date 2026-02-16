@@ -23,6 +23,7 @@ The props type is `ChartGPUProps` (defined in `src/types.ts`).
 | Prop | Type | Required | Notes |
 |---|---|---:|---|
 | `options` | `ChartGPUOptions` | ✅ | Full chart configuration object. Updates call `setOption(...)` with a full replacement. |
+| `gpuContext` | `ChartGPUCreateContext` |  | **Init-only.** Shared GPU context for multi-chart dashboards. Changing after mount has no effect. |
 | `theme` | `ChartGPUOptions['theme']` |  | Theme override merged into `options` (`'dark' \| 'light' \| ThemeConfig`). |
 | `style` | `React.CSSProperties` |  | Applied to the container `<div>`. Provide an explicit `height`. |
 | `className` | `string` |  | Applied to the container `<div>`. |
@@ -31,6 +32,8 @@ The props type is `ChartGPUProps` (defined in `src/types.ts`).
 | `onMouseOver` | `(payload: ChartGPUEventPayload) => void` |  | Wires to `chart.on('mouseover', ...)`. |
 | `onMouseOut` | `(payload: ChartGPUEventPayload) => void` |  | Wires to `chart.on('mouseout', ...)`. |
 | `onCrosshairMove` | `(payload: ChartGPUCrosshairMovePayload) => void` |  | Wires to `chart.on('crosshairMove', ...)`. |
+| `onDataAppend` | `(payload: ChartGPUDataAppendPayload) => void` |  | Wires to `chart.on('dataAppend', ...)`. Fires when data is appended via `appendData(...)`. |
+| `onDeviceLost` | `(payload: ChartGPUDeviceLostPayload) => void` |  | Wires to `chart.on('deviceLost', ...)`. Most relevant when using shared `gpuContext`. |
 | `onZoomChange` | `(range: ZoomRange) => void` |  | Fires on `zoomRangeChange` event. Also emits the current range once on subscribe (initial hydration). |
 
 ## Imperative ref (`ChartGPUHandle`)
@@ -39,7 +42,10 @@ The props type is `ChartGPUProps` (defined in `src/types.ts`).
 
 - `getChart()`
 - `getContainer()`
-- `appendData(seriesIndex, newPoints)`
+- `appendData(seriesIndex, newPoints)` — accepts Cartesian series data superset or `OHLCDataPoint[]`
+- `renderFrame(): boolean` — render one frame (external mode)
+- `needsRender(): boolean` — whether the chart has pending changes
+- `getRenderMode()`, `setRenderMode(mode)` — external render mode control
 - `setOption(options)`
 - `setZoomRange(start, end)`
 - `setInteractionX(x, source?)`
@@ -55,10 +61,10 @@ See [`ChartGPUHandle`](./chartgpu-handle.md).
 On mount, the component calls:
 
 ```ts
-ChartGPU.create(containerDiv, effectiveOptions)
+ChartGPU.create(containerDiv, effectiveOptions, gpuContext?)
 ```
 
-Where `effectiveOptions` is `options` with `theme` merged in when provided.
+Where `effectiveOptions` is `options` with `theme` merged in when provided. If `gpuContext` is passed, it is used for shared GPU resources (init-only; changing the prop after mount has no effect).
 
 If the component unmounts before async creation completes (common in React 18 StrictMode dev), the newly-created chart instance is disposed immediately to avoid leaks.
 

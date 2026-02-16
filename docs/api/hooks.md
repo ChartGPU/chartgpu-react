@@ -2,7 +2,7 @@
 
 This package provides two hooks:
 
-- `useChartGPU(containerRef, options)` — create/manage a `ChartGPUInstance`
+- `useChartGPU(containerRef, options, gpuContext?)` — create/manage a `ChartGPUInstance` (3rd param optional shared context; init-only)
 - `useConnectCharts(charts, syncOptions?)` — connect instances for synced crosshair/interaction-x (and optionally zoom)
 
 Related:
@@ -11,7 +11,7 @@ Related:
 - [Chart sync recipe](../recipes/chart-sync.md)
 - LLM entrypoint: [`llm-context.md`](./llm-context.md)
 
-## `useChartGPU(containerRef, options)`
+## `useChartGPU(containerRef, options, gpuContext?)`
 
 Creates a `@chartgpu/chartgpu` chart instance inside a DOM element that you control.
 
@@ -19,7 +19,7 @@ Creates a `@chartgpu/chartgpu` chart instance inside a DOM element that you cont
 
 ```ts
 import { useChartGPU } from 'chartgpu-react';
-import type { ChartGPUOptions } from 'chartgpu-react';
+import type { ChartGPUOptions, ChartGPUCreateContext } from 'chartgpu-react';
 ```
 
 ### Signature
@@ -27,7 +27,8 @@ import type { ChartGPUOptions } from 'chartgpu-react';
 ```ts
 function useChartGPU(
   containerRef: React.RefObject<HTMLElement>,
-  options: ChartGPUOptions
+  options: ChartGPUOptions,
+  gpuContext?: ChartGPUCreateContext
 ): {
   chart: ChartGPUInstance | null;
   isReady: boolean;
@@ -35,11 +36,13 @@ function useChartGPU(
 }
 ```
 
+The 3rd parameter `gpuContext` is **init-only**: it is only read during chart creation. Changing it after mount has no effect.
+
 ### Behavior
 
 - On mount:
   - checks WebGPU support (`'gpu' in navigator`)
-  - calls `ChartGPU.create(containerRef.current, options)`
+  - calls `ChartGPU.create(containerRef.current, options, gpuContext?)`
   - sets `chart`, `isReady`, and `error` accordingly
 - On `options` change:
   - calls `chart.setOption(options)` (full replacement)

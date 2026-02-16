@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
-import type { ChartGPUOptions } from '@chartgpu/chartgpu';
+import type { ChartGPUCreateContext, ChartGPUOptions } from '@chartgpu/chartgpu';
 import type { ChartInstance } from './types';
 
 /**
@@ -76,7 +76,8 @@ function debounce<T extends (...args: any[]) => void>(
  */
 export function useChartGPU(
   containerRef: React.RefObject<HTMLElement>,
-  options: ChartGPUOptions
+  options: ChartGPUOptions,
+  gpuContext?: ChartGPUCreateContext
 ): UseChartGPUResult {
   const [chart, setChart] = useState<ChartInstance | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -84,6 +85,7 @@ export function useChartGPU(
 
   const mountedRef = useRef<boolean>(false);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const gpuContextRef = useRef(gpuContext);
 
   // Initialize chart on mount
   useEffect(() => {
@@ -104,10 +106,10 @@ export function useChartGPU(
       try {
         if (!containerRef.current) return;
 
-        chartInstance = await ChartGPULib.create(
-          containerRef.current,
-          options
-        );
+        const ctx = gpuContextRef.current;
+        chartInstance = ctx
+          ? await ChartGPULib.create(containerRef.current, options, ctx)
+          : await ChartGPULib.create(containerRef.current, options);
 
         // StrictMode safety: only update state if still mounted
         if (mountedRef.current) {

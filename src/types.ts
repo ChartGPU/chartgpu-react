@@ -9,10 +9,58 @@ import type {
   ChartGPUInstance,
   ChartGPUEventPayload,
   ChartGPUHitTestResult,
+  ChartGPUCreateContext,
+  ChartGPUDeviceLostPayload,
   DataPoint,
   OHLCDataPoint,
   ChartGPUCrosshairMovePayload,
+  RenderMode,
 } from '@chartgpu/chartgpu';
+
+/**
+ * Separate x/y/size arrays for cartesian series data.
+ * Mirrors the upstream shape used by ChartGPU's `appendData(...)`.
+ */
+export type XYArraysData = Readonly<{
+  x: ArrayLike<number>;
+  y: ArrayLike<number>;
+  size?: ArrayLike<number>;
+}>;
+
+/**
+ * Pre-interleaved XY cartesian data as a typed array view.
+ * Data must be laid out as [x0, y0, x1, y1, ...].
+ *
+ * Note: This is a type-level convenience for `appendData(...)`. It matches
+ * ChartGPU's public behavior but is not currently exported as a named type
+ * from `@chartgpu/chartgpu` due to its package `exports` map.
+ */
+export type InterleavedXYData = ArrayBufferView;
+
+/**
+ * Union type for cartesian series data formats supported by `appendData(...)`.
+ * Mirrors the upstream `CartesianSeriesData` type used internally by ChartGPU.
+ */
+export type CartesianSeriesData =
+  | ReadonlyArray<DataPoint>
+  | XYArraysData
+  | InterleavedXYData;
+
+/**
+ * Payload emitted by the ChartGPU `'dataAppend'` event.
+ *
+ * Note: ChartGPU emits this event in v0.2.7+ but does not currently export the
+ * payload type from its package root due to its package `exports` map.
+ * We provide this wrapper type so React consumers can strongly type `onDataAppend`.
+ */
+export type ChartGPUDataAppendPayload = Readonly<{
+  readonly seriesIndex: number;
+  readonly count: number;
+  readonly xExtent: {
+    readonly min: number;
+    readonly max: number;
+  };
+}>;
 
 /**
  * Bivariant callback helper (matches React's event handler variance behavior).
@@ -60,6 +108,14 @@ export interface ChartGPUProps {
    * Note: setOption() replaces the entire options object, not partial updates.
    */
   options: ChartGPUOptions;
+
+  /**
+   * Optional shared GPU context for multi-chart dashboards (ChartGPU v0.2.7+).
+   *
+   * IMPORTANT: This prop is **init-only** (only read during `ChartGPU.create(...)`).
+   * Changing it after mount has no effect.
+   */
+  gpuContext?: ChartGPUCreateContext;
 
   /**
    * Optional theme configuration.
@@ -112,6 +168,18 @@ export interface ChartGPUProps {
   onCrosshairMove?: (payload: ChartGPUCrosshairMovePayload) => void;
 
   /**
+   * Callback invoked when data is appended via `appendData(...)` (ChartGPU v0.2.7+).
+   * Useful for coordinated streaming dashboards and cross-chart synchronization.
+   */
+  onDataAppend?: (payload: ChartGPUDataAppendPayload) => void;
+
+  /**
+   * Callback invoked when a shared GPU device is lost (ChartGPU v0.2.7+).
+   * Most useful when using `gpuContext` to share a `GPUDevice` across charts.
+   */
+  onDeviceLost?: (payload: ChartGPUDeviceLostPayload) => void;
+
+  /**
    * Callback invoked when the chart zoom range changes.
    *
    * @param range - The new zoom range with start and end values
@@ -155,7 +223,29 @@ export interface ChartGPUHandle {
    * @param seriesIndex - Zero-based index of the series to update
    * @param newPoints - Array of data points to append
    */
-  appendData(seriesIndex: number, newPoints: DataPoint[] | OHLCDataPoint[]): void;
+  appendData(seriesIndex: number, newPoints: CartesianSeriesData | OHLCDataPoint[]): void;
+
+  /**
+   * Render a single frame (external render mode only).
+   *
+   * @returns true if a frame was rendered, false if already clean
+   */
+  renderFrame(): boolean;
+
+  /**
+   * Check if the chart needs rendering (has pending changes).
+   */
+  needsRender(): boolean;
+
+  /**
+   * Get the current render mode.
+   */
+  getRenderMode(): RenderMode;
+
+  /**
+   * Set the render mode.
+   */
+  setRenderMode(mode: RenderMode): void;
 
   /**
    * Replace the entire chart options.
@@ -207,6 +297,9 @@ export type {
   ChartGPUOptions,
   ChartGPUEventPayload,
   ChartGPUCrosshairMovePayload,
+  ChartGPUCreateContext,
+  ChartGPUDeviceLostPayload,
   DataPoint,
   OHLCDataPoint,
+  RenderMode,
 } from '@chartgpu/chartgpu';

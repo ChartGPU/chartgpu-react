@@ -1,11 +1,11 @@
 # Getting started
 
-`chartgpu-react` is a **thin React + TypeScript wrapper** around the [`chartgpu`](https://www.npmjs.com/package/chartgpu) WebGPU charting library.
+`chartgpu-react` is a **thin React + TypeScript wrapper** around the [`@chartgpu/chartgpu`](https://www.npmjs.com/package/@chartgpu/chartgpu) WebGPU charting library.
 
 ## Install
 
 ```bash
-npm install chartgpu-react chartgpu react react-dom
+npm install chartgpu-react @chartgpu/chartgpu react react-dom
 ```
 
 ## Requirements

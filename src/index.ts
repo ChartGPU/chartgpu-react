@@ -14,11 +14,19 @@ export type {
   ClickParams,
   MouseOverParams,
   ZoomRange,
+  CartesianSeriesData,
+  InterleavedXYData,
+  XYArraysData,
+  ChartGPUDataAppendPayload,
 } from './types';
 
 // useChartGPU hook (Story 6.19)
 export { useChartGPU } from './useChartGPU';
 export type { UseChartGPUResult } from './useChartGPU';
+
+// Shared GPU context hook (ChartGPU v0.2.7+)
+export { useGPUContext } from './useGPUContext';
+export type { UseGPUContextResult } from './useGPUContext';
 
 // Chart sync hook (connectCharts) - ChartGPU v0.2.3+
 export { useConnectCharts } from './useConnectCharts';
@@ -38,6 +46,7 @@ export type { ChartGPUChartProps } from './ChartGPUChart';
 // Re-export chartgpu helpers (avoid colliding with our `ChartGPU` React component)
 export { createChart, connectCharts } from '@chartgpu/chartgpu';
 export { createAnnotationAuthoring } from './createAnnotationAuthoring';
+export { createPipelineCache, destroyPipelineCache, getPipelineCacheStats } from '@chartgpu/chartgpu';
 
 // Re-export types from @chartgpu/chartgpu for convenience
 // This provides a single import point for all ChartGPU types
@@ -45,11 +54,14 @@ export type {
   // Core instance and options
   ChartGPUInstance,
   ChartGPUOptions,
+  ChartGPUCreateContext,
 
   // Event payloads
   ChartGPUEventPayload,
   ChartGPUCrosshairMovePayload,
   ChartGPUZoomRangeChangePayload,
+  ChartGPUDeviceLostPayload,
+  RenderMode,
 
   // Hit testing
   ChartGPUHitTestResult,
@@ -97,6 +109,8 @@ export type {
 
   // Performance
   PerformanceMetrics,
+  PipelineCache,
+  PipelineCacheStats,
 
   // Theme configuration
   ThemeConfig,
@@ -105,4 +119,6 @@ export type {
   // Axis and grid configurations
   AxisConfig,
   GridConfig,
+  GridLinesConfig,
+  GridLinesDirectionConfig,
 } from '@chartgpu/chartgpu';
