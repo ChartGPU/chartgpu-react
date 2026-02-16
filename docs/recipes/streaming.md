@@ -4,8 +4,8 @@ For realtime charts, prefer `appendData(...)` over rebuilding your entire `optio
 
 You can append:
 
-- `DataPoint[]` for most XY series (e.g. line), or
-- `OHLCDataPoint[]` for candlesticks.
+- **Cartesian series data**: `DataPoint[]`, `XYArraysData`, or `InterleavedXYData` for XY series (e.g. line, scatter)
+- **OHLC**: `OHLCDataPoint[]` for candlesticks
 
 Related:
 
@@ -98,6 +98,6 @@ export function StreamingCandles() {
 ## Notes
 
 - `seriesIndex` is the index into `options.series`.
-- `appendData` assumes the series at that index is compatible with the points you append (e.g. `OHLCDataPoint` for candlesticks).
+- `appendData` assumes the series at that index is compatible with the points you append (e.g. `OHLCDataPoint[]` for candlesticks, `DataPoint[]` or array-like formats for line/scatter).
 - `options` updates are full replacements; streaming is best done via `appendData` to avoid reallocating large arrays.
 

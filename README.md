@@ -28,10 +28,10 @@
 ## Highlights
 
 - **`ChartGPU` component (recommended)**: async create/dispose lifecycle + debounced `ResizeObserver` sizing
-- **Event props**: `onClick`, `onCrosshairMove`, `onZoomChange`, etc.
-- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`)
-- **Hooks**: `useChartGPU(...)`, `useConnectCharts(..., syncOptions?)`
-- **Helper re-exports (from `@chartgpu/chartgpu`)**: `createChart`, `connectCharts`, `createAnnotationAuthoring`
+- **Event props**: `onClick`, `onCrosshairMove`, `onZoomChange`, `onDataAppend`, `onDeviceLost`, etc.
+- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`, `needsRender`, `renderFrame`, `getRenderMode`, `setRenderMode`)
+- **Hooks**: `useChartGPU(...)`, `useGPUContext()`, `useConnectCharts(..., syncOptions?)`
+- **Helper re-exports (from `@chartgpu/chartgpu`)**: `createChart`, `connectCharts`, `createPipelineCache`, `getPipelineCacheStats`, `destroyPipelineCache`, `createAnnotationAuthoring`
 
 ## Quick start
 
@@ -85,15 +85,17 @@ Check browser compatibility at [caniuse.com/webgpu](https://caniuse.com/webgpu).
 - **`ChartGPU`** React component (recommended)
   - lifecycle management (async create + dispose)
   - `ResizeObserver` resize (debounced)
-  - event props: `onClick`, `onCrosshairMove`, `onZoomChange`, etc.
-  - imperative `ref` API: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`)
+  - event props: `onClick`, `onCrosshairMove`, `onZoomChange`, `onDataAppend`, `onDeviceLost`, etc.
+  - multi-chart dashboards: `gpuContext` prop (share a `GPUDevice` across charts)
+  - imperative `ref` API: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`, `needsRender`, `renderFrame`, `getRenderMode`, `setRenderMode`)
 - **Hooks**
-  - `useChartGPU(containerRef, options)` — create/manage a chart instance
+  - `useChartGPU(containerRef, options, gpuContext?)` — create/manage a chart instance (optionally share GPU resources)
+  - `useGPUContext()` — create a shared `GPUAdapter` + `GPUDevice` + `PipelineCache` for multi-chart dashboards
   - `useConnectCharts([chartA, chartB, ...], syncOptions?)` — sync crosshair/interaction-x (and optionally zoom) across charts
 - **Deprecated**
   - `ChartGPUChart` (legacy adapter; use `ChartGPU` instead)
 - **Helper re-exports** (from peer dependency `@chartgpu/chartgpu`)
-  - `createChart`, `connectCharts`, `createAnnotationAuthoring`
+  - `createChart`, `connectCharts`, `createAnnotationAuthoring`, `createPipelineCache`, `getPipelineCacheStats`, `destroyPipelineCache`
 
 For details, start with the [API reference](./docs/API.md).
 
@@ -132,6 +134,56 @@ disconnect();
 ```
 
 If you prefer a hook-driven approach, you can use `onReady` (or `useChartGPU`) to capture instances, then call `useConnectCharts(...)` once both are available.
+
+### External render mode (app-owned render loop)
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { ChartGPU } from 'chartgpu-react';
+import type { ChartGPUHandle } from 'chartgpu-react';
+
+function ExternalLoop() {
+  const ref = useRef<ChartGPUHandle>(null);
+
+  useEffect(() => {
+    let raf = 0;
+    const loop = () => {
+      if (ref.current?.needsRender()) {
+        ref.current.renderFrame();
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return <ChartGPU ref={ref} options={{ ...options, renderMode: 'external' }} />;
+}
+```
+
+### Multi-chart dashboards (shared GPU device + pipeline cache)
+
+```tsx
+import { ChartGPU, useGPUContext } from 'chartgpu-react';
+
+function Dashboard() {
+  const { adapter, device, pipelineCache, isReady, error } = useGPUContext();
+
+  if (error) return <div>{error.message}</div>;
+  if (!isReady || !adapter || !device) return <div>Loading…</div>;
+
+  const gpuContext = pipelineCache
+    ? { adapter, device, pipelineCache }
+    : { adapter, device };
+
+  return (
+    <>
+      <ChartGPU options={optionsA} gpuContext={gpuContext} />
+      <ChartGPU options={optionsB} gpuContext={gpuContext} />
+    </>
+  );
+}
+```
 
 ### Annotation authoring UI (`createAnnotationAuthoring`)
 

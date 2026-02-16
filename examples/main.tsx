@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChartGPU, connectCharts, createAnnotationAuthoring } from '../src';
+import { ChartGPU, connectCharts, createAnnotationAuthoring, useGPUContext } from '../src';
 import type {
   ChartGPUCrosshairMovePayload,
+  ChartGPUCreateContext,
+  ChartGPUDataAppendPayload,
+  ChartGPUDeviceLostPayload,
   ChartGPUHandle,
   ChartGPUInstance,
   ChartGPUOptions,
@@ -159,6 +162,264 @@ function ConnectedChartsExample() {
           onReady={setBottomChart}
           theme="dark"
         />
+      </div>
+    </div>
+  );
+}
+
+function ExternalRenderModeExample() {
+  const ref = useRef<ChartGPUHandle>(null);
+  const [mode, setMode] = useState<'auto' | 'external'>('external');
+
+  const initial = useMemo(() => generateLineData(300, 0.9), []);
+  const lastXRef = useRef<number>(initial.length);
+
+  const options: ChartGPUOptions = useMemo(
+    () => ({
+      renderMode: 'external',
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'External loop',
+          data: initial,
+          lineStyle: { width: 2, color: '#ffd166' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }, { type: 'slider', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 40 },
+    }),
+    [initial]
+  );
+
+  // App-owned render loop (requestAnimationFrame). Only runs in external mode.
+  useEffect(() => {
+    if (mode !== 'external') return;
+
+    let rafId = 0;
+    const loop = () => {
+      const h = ref.current;
+      if (h && h.needsRender()) {
+        h.renderFrame();
+      }
+      rafId = window.requestAnimationFrame(loop);
+    };
+    rafId = window.requestAnimationFrame(loop);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [mode]);
+
+  // Stream data to force the chart dirty.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const x = lastXRef.current++;
+      const y = Math.sin(x * 0.02) * 40 + Math.cos(x * 0.013) * 12;
+      ref.current?.appendData(0, [{ x, y }]);
+    }, 120);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="example-section">
+      <h2 className="example-title">External render mode (app-owned RAF loop)</h2>
+
+      <div className="info-box">
+        <strong>Features:</strong> <code>renderMode: 'external'</code>,{' '}
+        <code>needsRender()</code> + <code>renderFrame()</code>
+        <br />
+        <strong>Mode:</strong> <code>{mode}</code>{' '}
+        <button
+          style={{ marginLeft: 10 }}
+          onClick={() => {
+            const next = mode === 'external' ? 'auto' : 'external';
+            setMode(next);
+            ref.current?.setRenderMode(next);
+          }}
+        >
+          Toggle
+        </button>
+      </div>
+
+      <div className="chart-container">
+        <ChartGPU
+          ref={ref}
+          options={options}
+          style={{ width: '100%', height: '320px' }}
+          theme="dark"
+        />
+      </div>
+    </div>
+  );
+}
+
+function StreamingDashboardExample() {
+  const { adapter, device, pipelineCache, isReady, error } = useGPUContext();
+
+  const gpuContext = useMemo<ChartGPUCreateContext | undefined>(() => {
+    if (!adapter || !device) return undefined;
+    return pipelineCache
+      ? { adapter, device, pipelineCache }
+      : { adapter, device };
+  }, [adapter, device, pipelineCache]);
+
+  const [lastAppend, setLastAppend] = useState<ChartGPUDataAppendPayload | null>(null);
+  const [lost, setLost] = useState<ChartGPUDeviceLostPayload | null>(null);
+
+  const aRef = useRef<ChartGPUHandle>(null);
+  const bRef = useRef<ChartGPUHandle>(null);
+  const cRef = useRef<ChartGPUHandle>(null);
+
+  const aOptions: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'latency(ms)',
+          data: generateLineData(300, 0.1),
+          lineStyle: { width: 2, color: '#4facfe' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const bOptions: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'cpu(%)',
+          data: generateLineData(300, 1.7),
+          lineStyle: { width: 2, color: '#f093fb' },
+          areaStyle: { color: 'rgba(240, 147, 251, 0.12)' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const cOptions: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'mem(%)',
+          data: generateLineData(300, 3.2),
+          lineStyle: { width: 2, color: '#40d17c' },
+          areaStyle: { color: 'rgba(64, 209, 124, 0.12)' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  // Stream data into all charts. Demonstrates multi-chart sharing via gpuContext.
+  useEffect(() => {
+    let x = 300;
+    const timer = window.setInterval(() => {
+      x += 1;
+      aRef.current?.appendData(0, [{ x, y: 40 + Math.sin(x * 0.03) * 25 + Math.random() * 5 }]);
+      bRef.current?.appendData(0, [{ x, y: 55 + Math.cos(x * 0.02) * 22 + Math.random() * 6 }]);
+      cRef.current?.appendData(0, [{ x, y: 50 + Math.sin(x * 0.017) * 18 + Math.random() * 4 }]);
+    }, 140);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="example-section">
+      <h2 className="example-title">Streaming multi-chart dashboard (shared GPUDevice + pipeline cache)</h2>
+
+      <div className="info-box">
+        <strong>Features:</strong> <code>useGPUContext()</code> + <code>gpuContext</code> prop,{' '}
+        <code>onDataAppend</code>, <code>onDeviceLost</code>
+        <br />
+        <strong>GPU context:</strong>{' '}
+        {error ? (
+          <span style={{ color: '#ff6b6b' }}>{error.message}</span>
+        ) : isReady ? (
+          <span style={{ color: '#90ee90' }}>ready</span>
+        ) : (
+          <span>initializing…</span>
+        )}
+        {lost && (
+          <>
+            <br />
+            <strong style={{ color: '#ff6b6b' }}>Device lost:</strong>{' '}
+            <code>{lost.reason}</code> {lost.message ? `— ${lost.message}` : ''}
+          </>
+        )}
+        {lastAppend && (
+          <>
+            <br />
+            <strong>Last append:</strong>{' '}
+            series <code>{lastAppend.seriesIndex}</code>, count <code>{lastAppend.count}</code>, xExtent{' '}
+            <code>
+              [{lastAppend.xExtent.min.toFixed(2)}, {lastAppend.xExtent.max.toFixed(2)}]
+            </code>
+          </>
+        )}
+      </div>
+
+      <div className="chart-container">
+        {gpuContext ? (
+          <>
+            <ChartGPU
+              ref={aRef}
+              options={aOptions}
+              gpuContext={gpuContext}
+              style={{ width: '100%', height: '180px' }}
+              theme="dark"
+              onDataAppend={(p) => setLastAppend(p)}
+              onDeviceLost={(p) => setLost(p)}
+            />
+            <div style={{ height: 12 }} />
+            <ChartGPU
+              ref={bRef}
+              options={bOptions}
+              gpuContext={gpuContext}
+              style={{ width: '100%', height: '180px' }}
+              theme="dark"
+              onDataAppend={(p) => setLastAppend(p)}
+              onDeviceLost={(p) => setLost(p)}
+            />
+            <div style={{ height: 12 }} />
+            <ChartGPU
+              ref={cRef}
+              options={cOptions}
+              gpuContext={gpuContext}
+              style={{ width: '100%', height: '180px' }}
+              theme="dark"
+              onDataAppend={(p) => setLastAppend(p)}
+              onDeviceLost={(p) => setLost(p)}
+            />
+          </>
+        ) : (
+          <div style={{ padding: 16, opacity: 0.8 }}>
+            {error ? 'WebGPU unavailable.' : isReady ? 'Preparing shared context…' : 'Initializing WebGPU…'}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -411,6 +672,8 @@ function App() {
     <>
       <CrosshairMoveExample />
       <ConnectedChartsExample />
+      <ExternalRenderModeExample />
+      <StreamingDashboardExample />
       <AnnotationAuthoringExample />
       <CandlestickStreamingExample />
       <ScatterDensityExample />

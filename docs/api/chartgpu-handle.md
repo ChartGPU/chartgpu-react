@@ -5,6 +5,7 @@
 - accessing the underlying `ChartGPUInstance`
 - accessing the container element
 - streaming/append updates (`appendData`)
+- external render mode (`renderFrame`, `needsRender`, `getRenderMode`, `setRenderMode`)
 - replacing options (`setOption`)
 - programmatic zoom control (`setZoomRange`)
 - programmatic crosshair/tooltip (`setInteractionX`, `getInteractionX`)
@@ -42,14 +43,32 @@ Returns the container `<div>` used to mount the chart.
 
 Common use case: pass it to helpers like `createAnnotationAuthoring(container, chart, ...)`.
 
-### `appendData(seriesIndex: number, newPoints: DataPoint[] | OHLCDataPoint[]): void`
+### `appendData(seriesIndex: number, newPoints: CartesianSeriesData | OHLCDataPoint[]): void`
 
 Appends points to an existing series, delegating to `ChartGPUInstance.appendData(...)`.
 
 - **`seriesIndex`**: zero-based index into `options.series`.
-- **`newPoints`**: array of new points. For candlesticks, use `OHLCDataPoint[]`.
+- **`newPoints`**: Cartesian series data superset (`DataPoint[]`, `XYArraysData`, `InterleavedXYData`) or `OHLCDataPoint[]` for candlesticks.
 
 This is typically more efficient than replacing the entire `options.series[n].data` array.
+
+### `renderFrame(): boolean`
+
+Renders a single frame. Intended for external render mode.
+
+- **Returns**: `true` if a frame was rendered, `false` if already clean.
+
+### `needsRender(): boolean`
+
+Returns whether the chart has pending changes that require rendering.
+
+### `getRenderMode(): RenderMode`
+
+Returns the current render mode (`'auto'` or `'external'`).
+
+### `setRenderMode(mode: RenderMode): void`
+
+Sets the render mode. Use `'external'` to drive frames manually via `renderFrame()` based on `needsRender()`.
 
 ### `setOption(options: ChartGPUOptions): void`
 
@@ -99,6 +118,18 @@ Import the result type if needed:
 ```ts
 import type { ChartGPUHitTestResult } from 'chartgpu-react';
 ```
+
+## External render mode
+
+Set `options.renderMode = 'external'` or call `setRenderMode('external')`, then drive frames yourself:
+
+```ts
+if (handle.current?.needsRender()) {
+  handle.current.renderFrame();
+}
+```
+
+Useful when you need precise control over when the chart renders (e.g. coordinating with other animations or a custom render loop).
 
 ## Example: streaming with `appendData`
 
