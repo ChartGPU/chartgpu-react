@@ -1,8 +1,9 @@
 # Hooks
 
-This package provides two hooks:
+This package provides three hooks:
 
 - `useChartGPU(containerRef, options, gpuContext?)` — create/manage a `ChartGPUInstance` (3rd param optional shared context; init-only)
+- `useGPUContext()` — create a shared `GPUAdapter` + `GPUDevice` + `PipelineCache` for multi-chart dashboards
 - `useConnectCharts(charts, syncOptions?)` — connect instances for synced crosshair/interaction-x (and optionally zoom)
 
 Related:
@@ -79,6 +80,100 @@ export function HookChart() {
     <>
       {!isReady && <div>Loading…</div>}
       <div ref={containerRef} style={{ width: '100%', height: 360 }} />
+    </>
+  );
+}
+```
+
+## `useGPUContext()`
+
+Creates a shared `GPUAdapter`, `GPUDevice`, and `PipelineCache` for multi-chart dashboards. Call this once in a parent component and pass the result to each `<ChartGPU gpuContext={...} />` (or to `useChartGPU`'s third argument). This avoids each chart requesting its own GPU device and compiling duplicate shader pipelines.
+
+### Import
+
+```ts
+import { useGPUContext } from 'chartgpu-react';
+import type { UseGPUContextResult } from 'chartgpu-react';
+```
+
+### Signature
+
+```ts
+function useGPUContext(): {
+  adapter: GPUAdapter | null;
+  device: GPUDevice | null;
+  pipelineCache: PipelineCache | null;
+  isReady: boolean;
+  error: Error | null;
+}
+```
+
+### Behavior
+
+- On mount, requests a `GPUAdapter` (high-performance preference) and `GPUDevice`, then creates a `PipelineCache`.
+- All fields are `null` until initialization completes. `isReady` becomes `true` once both `adapter` and `device` are available.
+- If WebGPU is not supported or adapter/device acquisition fails, `error` is set and other fields remain `null`.
+- Safe in React 18 StrictMode dev (uses a ref guard to prevent double-initialization).
+- Initialization runs once on mount and cannot be re-triggered.
+
+### Usage with `<ChartGPU>`
+
+The `gpuContext` prop on `<ChartGPU>` accepts `{ adapter, device, pipelineCache }` which maps to the `ChartGPUCreateContext` type. This prop is **init-only** -- it is captured in a `useRef` at mount and only read during `ChartGPU.create(...)`. Changing it after mount has no effect.
+
+### Example
+
+```tsx
+import { useMemo, useState } from 'react';
+import { ChartGPU, useGPUContext } from 'chartgpu-react';
+import type { ChartGPUInstance, ChartGPUOptions } from 'chartgpu-react';
+
+export function Dashboard() {
+  const { adapter, device, pipelineCache, isReady, error } = useGPUContext();
+
+  const [chartA, setChartA] = useState<ChartGPUInstance | null>(null);
+  const [chartB, setChartB] = useState<ChartGPUInstance | null>(null);
+
+  const optionsA: ChartGPUOptions = useMemo(
+    () => ({
+      series: [{ type: 'line', data: [{ x: 0, y: 1 }, { x: 1, y: 3 }] }],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+    }),
+    []
+  );
+
+  const optionsB: ChartGPUOptions = useMemo(
+    () => ({
+      series: [{ type: 'bar', data: [{ x: 0, y: 5 }, { x: 1, y: 2 }] }],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+    }),
+    []
+  );
+
+  if (error) return <div>WebGPU not supported: {error.message}</div>;
+  if (!isReady) return <div>Initializing GPU...</div>;
+
+  // After the isReady check, adapter/device/pipelineCache are non-null.
+  const gpuContext = { adapter: adapter!, device: device!, pipelineCache: pipelineCache! };
+
+  return (
+    <>
+      <ChartGPU
+        options={optionsA}
+        gpuContext={gpuContext}
+        onReady={setChartA}
+        style={{ height: 300 }}
+        theme="dark"
+      />
+      <div style={{ height: 12 }} />
+      <ChartGPU
+        options={optionsB}
+        gpuContext={gpuContext}
+        onReady={setChartB}
+        style={{ height: 300 }}
+        theme="dark"
+      />
     </>
   );
 }

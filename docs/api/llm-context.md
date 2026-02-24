@@ -48,6 +48,7 @@ The goal of this `llm-context.md` file is to give Context7 (and other LLM toolin
   - `docs/api/chartgpu-handle.md`
   - Source: `src/types.ts`, `src/ChartGPU.tsx`
 - **Multi-chart dashboards (shared GPU device + pipeline cache)**
+  - [`docs/api/hooks.md#usegpucontext`](./hooks.md#usegpucontext)
   - Source: `src/useGPUContext.ts`, `src/types.ts`, `src/ChartGPU.tsx`, `src/useChartGPU.ts`
 - **Hooks (`useChartGPU`, `useConnectCharts`)**
   - `docs/api/hooks.md`
