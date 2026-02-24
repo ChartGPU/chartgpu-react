@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChartGPU, connectCharts, createAnnotationAuthoring, useGPUContext } from '../src';
+import { ChartGPU, connectCharts, createAnnotationAuthoring, useGPUContext, useConnectCharts } from '../src';
 import type {
   ChartGPUCrosshairMovePayload,
   ChartGPUCreateContext,
@@ -160,6 +160,281 @@ function ConnectedChartsExample() {
             height: '220px',
           }}
           onReady={setBottomChart}
+          theme="dark"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SyncedDashboardExample() {
+  const { adapter, device, pipelineCache, isReady, error } = useGPUContext();
+
+  const [chartA, setChartA] = useState<ChartGPUInstance | null>(null);
+  const [chartB, setChartB] = useState<ChartGPUInstance | null>(null);
+  const [chartC, setChartC] = useState<ChartGPUInstance | null>(null);
+
+  // Sync crosshair and zoom across all three charts
+  useConnectCharts([chartA, chartB, chartC], { syncZoom: true });
+
+  const optionsA: ChartGPUOptions = useMemo(
+    () => ({
+      series: [
+        {
+          type: 'line',
+          name: 'Series A',
+          data: generateLineData(500, 0.5),
+          lineStyle: { width: 2, color: '#4facfe' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside' }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const optionsB: ChartGPUOptions = useMemo(
+    () => ({
+      series: [
+        {
+          type: 'line',
+          name: 'Series B',
+          data: generateLineData(500, 2.1),
+          lineStyle: { width: 2, color: '#f093fb' },
+          areaStyle: { color: 'rgba(240, 147, 251, 0.12)' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside' }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const optionsC: ChartGPUOptions = useMemo(
+    () => ({
+      series: [
+        {
+          type: 'line',
+          name: 'Series C',
+          data: generateLineData(500, 4.0),
+          lineStyle: { width: 2, color: '#40d17c' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside' }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  if (error) return (
+    <div className="example-section">
+      <h2 className="example-title">Synced dashboard (shared GPU + useConnectCharts)</h2>
+      <div className="info-box">
+        <span style={{ color: '#ff6b6b' }}>WebGPU not supported: {error.message}</span>
+      </div>
+    </div>
+  );
+
+  if (!isReady) return (
+    <div className="example-section">
+      <h2 className="example-title">Synced dashboard (shared GPU + useConnectCharts)</h2>
+      <div className="info-box">Initializing GPU...</div>
+    </div>
+  );
+
+  const gpuContext = { adapter: adapter!, device: device!, pipelineCache: pipelineCache! };
+
+  return (
+    <div className="example-section">
+      <h2 className="example-title">Synced dashboard (shared GPU + useConnectCharts)</h2>
+
+      <div className="info-box">
+        <strong>Features:</strong> <code>useGPUContext()</code> + <code>useConnectCharts()</code> +{' '}
+        <code>gpuContext</code> prop
+        <br />
+        <strong>Try it:</strong> Move crosshair or zoom on any chart — all three stay in sync
+      </div>
+
+      <div className="chart-container">
+        <ChartGPU
+          options={optionsA}
+          gpuContext={gpuContext}
+          onReady={setChartA}
+          style={{ width: '100%', height: '200px' }}
+          theme="dark"
+        />
+        <div style={{ height: 8 }} />
+        <ChartGPU
+          options={optionsB}
+          gpuContext={gpuContext}
+          onReady={setChartB}
+          style={{ width: '100%', height: '200px' }}
+          theme="dark"
+        />
+        <div style={{ height: 8 }} />
+        <ChartGPU
+          options={optionsC}
+          gpuContext={gpuContext}
+          onReady={setChartC}
+          style={{ width: '100%', height: '200px' }}
+          theme="dark"
+        />
+      </div>
+    </div>
+  );
+}
+
+function StreamingSyncedDashboardExample() {
+  const { adapter, device, pipelineCache, isReady, error } = useGPUContext();
+
+  const [chartA, setChartA] = useState<ChartGPUInstance | null>(null);
+  const [chartB, setChartB] = useState<ChartGPUInstance | null>(null);
+  const [chartC, setChartC] = useState<ChartGPUInstance | null>(null);
+
+  const refA = useRef<ChartGPUHandle>(null);
+  const refB = useRef<ChartGPUHandle>(null);
+  const refC = useRef<ChartGPUHandle>(null);
+
+  // Sync crosshair and zoom across all three charts
+  useConnectCharts([chartA, chartB, chartC], { syncZoom: true });
+
+  const optionsA: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'latency(ms)',
+          data: generateLineData(200, 0.1),
+          lineStyle: { width: 2, color: '#4facfe' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const optionsB: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'throughput',
+          data: generateLineData(200, 1.7),
+          lineStyle: { width: 2, color: '#f093fb' },
+          areaStyle: { color: 'rgba(240, 147, 251, 0.12)' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  const optionsC: ChartGPUOptions = useMemo(
+    () => ({
+      autoScroll: true,
+      series: [
+        {
+          type: 'line',
+          name: 'errors',
+          data: generateLineData(200, 3.2),
+          lineStyle: { width: 2, color: '#ff6b6b' },
+        },
+      ],
+      xAxis: { type: 'value' },
+      yAxis: { type: 'value' },
+      tooltip: { show: true, trigger: 'axis' },
+      dataZoom: [{ type: 'inside', start: 70, end: 100 }],
+      grid: { left: 60, right: 40, top: 40, bottom: 30 },
+    }),
+    []
+  );
+
+  // Stream data into all three charts via refs
+  const xRef = useRef(200);
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const x = xRef.current++;
+      refA.current?.appendData(0, [{ x, y: 40 + Math.sin(x * 0.03) * 25 + Math.random() * 5 }]);
+      refB.current?.appendData(0, [{ x, y: 55 + Math.cos(x * 0.02) * 22 + Math.random() * 6 }]);
+      refC.current?.appendData(0, [{ x, y: 10 + Math.abs(Math.sin(x * 0.05)) * 8 + Math.random() * 3 }]);
+    }, 120);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (error) return (
+    <div className="example-section">
+      <h2 className="example-title">Streaming synced dashboard (shared GPU + useConnectCharts + appendData)</h2>
+      <div className="info-box">
+        <span style={{ color: '#ff6b6b' }}>WebGPU not supported: {error.message}</span>
+      </div>
+    </div>
+  );
+
+  if (!isReady) return (
+    <div className="example-section">
+      <h2 className="example-title">Streaming synced dashboard (shared GPU + useConnectCharts + appendData)</h2>
+      <div className="info-box">Initializing GPU...</div>
+    </div>
+  );
+
+  const gpuContext = { adapter: adapter!, device: device!, pipelineCache: pipelineCache! };
+
+  return (
+    <div className="example-section">
+      <h2 className="example-title">Streaming synced dashboard (shared GPU + useConnectCharts + appendData)</h2>
+
+      <div className="info-box">
+        <strong>Features:</strong> <code>useGPUContext()</code> + <code>useConnectCharts()</code> +{' '}
+        <code>appendData</code> streaming
+        <br />
+        <strong>Try it:</strong> Move crosshair or zoom on any chart while data streams — all three stay in sync
+      </div>
+
+      <div className="chart-container">
+        <ChartGPU
+          ref={refA}
+          options={optionsA}
+          gpuContext={gpuContext}
+          onReady={setChartA}
+          style={{ width: '100%', height: '180px' }}
+          theme="dark"
+        />
+        <div style={{ height: 8 }} />
+        <ChartGPU
+          ref={refB}
+          options={optionsB}
+          gpuContext={gpuContext}
+          onReady={setChartB}
+          style={{ width: '100%', height: '180px' }}
+          theme="dark"
+        />
+        <div style={{ height: 8 }} />
+        <ChartGPU
+          ref={refC}
+          options={optionsC}
+          gpuContext={gpuContext}
+          onReady={setChartC}
+          style={{ width: '100%', height: '180px' }}
           theme="dark"
         />
       </div>
@@ -672,6 +947,8 @@ function App() {
     <>
       <CrosshairMoveExample />
       <ConnectedChartsExample />
+      <SyncedDashboardExample />
+      <StreamingSyncedDashboardExample />
       <ExternalRenderModeExample />
       <StreamingDashboardExample />
       <AnnotationAuthoringExample />

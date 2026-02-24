@@ -4,7 +4,7 @@ This package is a **React wrapper** around the `@chartgpu/chartgpu` core library
 
 - A React component (`ChartGPU`) with lifecycle + resize management
 - A small imperative ref API (`ChartGPUHandle`)
-- Two hooks (`useChartGPU`, `useConnectCharts`)
+- Three hooks (`useChartGPU`, `useGPUContext`, `useConnectCharts`)
 - Convenience re-exports of a few core helpers + types
 
 For an LLM-oriented navigation entrypoint, see [`docs/api/llm-context.md`](./api/llm-context.md).
@@ -19,6 +19,7 @@ For an LLM-oriented navigation entrypoint, see [`docs/api/llm-context.md`](./api
 ### Hooks
 
 - **`useChartGPU(containerRef, options, gpuContext?)`** — create/manage an instance imperatively (3rd param optional shared context; init-only)
+- **`useGPUContext()`** — create a shared `GPUAdapter` + `GPUDevice` + `PipelineCache` for multi-chart dashboards; see [`docs/api/hooks.md#usegpucontext`](./api/hooks.md#usegpucontext)
 - **`useConnectCharts([chartA, chartB, ...], syncOptions?)`** — keep crosshair/interaction-x in sync (optionally sync zoom)
 
 See [`docs/api/hooks.md`](./api/hooks.md).
