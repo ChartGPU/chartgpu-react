@@ -1,7 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import type { ChartGPUOptions, ChartGPUInstance } from '@chartgpu/chartgpu';
 import { ChartGPU } from './ChartGPU';
+
+const DEFAULT_STYLE: CSSProperties = {
+  position: 'relative',
+  width: '100%',
+  height: '400px',
+};
 
 export interface ChartGPUChartProps {
   /**
@@ -71,6 +77,19 @@ export function ChartGPUChart({
 }: ChartGPUChartProps): JSX.Element {
   const didInitRef = useRef(false);
 
+  const onInitRef = useRef(onInit);
+  onInitRef.current = onInit;
+
+  const handleReady = useCallback((instance: ChartGPUInstance) => {
+    didInitRef.current = true;
+    onInitRef.current?.(instance);
+  }, []);
+
+  const mergedStyle = useMemo(
+    () => (style ? { ...DEFAULT_STYLE, ...style } : DEFAULT_STYLE),
+    [style]
+  );
+
   useEffect(() => {
     return () => {
       if (didInitRef.current) {
@@ -82,17 +101,9 @@ export function ChartGPUChart({
   return (
     <ChartGPU
       className={className}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '400px',
-        ...style,
-      }}
+      style={mergedStyle}
       options={options}
-      onReady={(instance: ChartGPUInstance) => {
-        didInitRef.current = true;
-        onInit?.(instance);
-      }}
+      onReady={handleReady}
     />
   );
 }

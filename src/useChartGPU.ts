@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
 import type { ChartGPUCreateContext, ChartGPUOptions } from '@chartgpu/chartgpu';
 import type { ChartInstance } from './types';
+import { debounce } from './utils';
 
 /**
  * Result object returned by the useChartGPU hook.
@@ -22,24 +23,6 @@ export interface UseChartGPUResult {
    * Null when no error has occurred.
    */
   error: Error | null;
-}
-
-/**
- * Debounce utility for throttling frequent calls.
- */
-function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delayMs: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return (...args: Parameters<T>) => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      fn(...args);
-    }, delayMs);
-  };
 }
 
 /**
@@ -80,11 +63,9 @@ export function useChartGPU(
   gpuContext?: ChartGPUCreateContext
 ): UseChartGPUResult {
   const [chart, setChart] = useState<ChartInstance | null>(null);
-  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const mountedRef = useRef<boolean>(false);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const gpuContextRef = useRef(gpuContext);
 
   // Initialize chart on mount
@@ -114,7 +95,6 @@ export function useChartGPU(
         // StrictMode safety: only update state if still mounted
         if (mountedRef.current) {
           setChart(chartInstance);
-          setIsReady(true);
           setError(null);
         } else {
           // Component unmounted during async create - dispose immediately
@@ -126,7 +106,6 @@ export function useChartGPU(
           const normalizedError =
             err instanceof Error ? err : new Error(String(err));
           setError(normalizedError);
-          setIsReady(false);
         }
       }
     };
@@ -136,15 +115,9 @@ export function useChartGPU(
     // Cleanup on unmount
     return () => {
       mountedRef.current = false;
-      setIsReady(false);
 
       if (chartInstance && !chartInstance.disposed) {
         chartInstance.dispose();
-      }
-
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-        resizeObserverRef.current = null;
       }
     };
     // Intentionally omitting containerRef.current from dependencies to avoid re-initialization
@@ -174,15 +147,13 @@ export function useChartGPU(
     });
 
     observer.observe(container);
-    resizeObserverRef.current = observer;
 
     return () => {
       observer.disconnect();
-      resizeObserverRef.current = null;
     };
     // Intentionally omitting containerRef.current from dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chart]);
 
-  return { chart, isReady, error };
+  return { chart, isReady: chart !== null, error };
 }
