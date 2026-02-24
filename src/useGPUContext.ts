@@ -21,11 +21,20 @@ export interface UseGPUContextResult {
  * - Pass `{ adapter, device, pipelineCache }` to each `<ChartGPU gpuContext={...} />`
  *   or to `useChartGPU(containerRef, options, gpuContext)`.
  */
+interface GPUContextState {
+  adapter: ChartGPUCreateContext['adapter'] | null;
+  device: ChartGPUCreateContext['device'] | null;
+  pipelineCache: PipelineCache | null;
+  error: Error | null;
+}
+
 export function useGPUContext(): UseGPUContextResult {
-  const [adapter, setAdapter] = useState<ChartGPUCreateContext['adapter'] | null>(null);
-  const [device, setDevice] = useState<ChartGPUCreateContext['device'] | null>(null);
-  const [pipelineCache, setPipelineCache] = useState<PipelineCache | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+  const [state, setState] = useState<GPUContextState>({
+    adapter: null,
+    device: null,
+    pipelineCache: null,
+    error: null,
+  });
 
   // StrictMode safety: avoid double-initializing in dev (effect is invoked twice).
   const startedRef = useRef(false);
@@ -55,17 +64,11 @@ export function useGPUContext(): UseGPUContextResult {
 
         if (cancelled) return;
 
-        setAdapter(nextAdapter);
-        setDevice(nextDevice);
-        setPipelineCache(nextCache);
-        setError(null);
+        setState({ adapter: nextAdapter, device: nextDevice, pipelineCache: nextCache, error: null });
       } catch (err) {
         if (cancelled) return;
         const normalized = err instanceof Error ? err : new Error(String(err));
-        setError(normalized);
-        setAdapter(null);
-        setDevice(null);
-        setPipelineCache(null);
+        setState({ adapter: null, device: null, pipelineCache: null, error: normalized });
       }
     };
 
@@ -77,11 +80,8 @@ export function useGPUContext(): UseGPUContextResult {
   }, []);
 
   return {
-    adapter,
-    device,
-    pipelineCache,
-    isReady: adapter !== null && device !== null,
-    error,
+    ...state,
+    isReady: state.adapter !== null && state.device !== null,
   };
 }
 

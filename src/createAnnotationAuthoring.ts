@@ -295,19 +295,20 @@ export function createAnnotationAuthoring(
   const ensureMenu = () => {
     if (menu) return menu;
     const el = doc.createElement('div');
-    el.style.position = 'fixed';
-    el.style.display = 'none';
-    el.style.backgroundColor = '#1a1a2e';
-    el.style.border = '1px solid #333';
-    el.style.borderRadius = '8px';
-    el.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
-    el.style.zIndex = String(options?.menuZIndex ?? 1000);
-    el.style.minWidth = '180px';
-    el.style.padding = '6px 0';
-    el.style.fontFamily =
-      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    el.style.fontSize = '14px';
-    el.style.color = '#e0e0e0';
+    el.style.cssText = [
+      'position: fixed',
+      'display: none',
+      'background-color: #1a1a2e',
+      'border: 1px solid #333',
+      'border-radius: 8px',
+      'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5)',
+      `z-index: ${options?.menuZIndex ?? 1000}`,
+      'min-width: 180px',
+      'padding: 6px 0',
+      'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      'font-size: 14px',
+      'color: #e0e0e0',
+    ].join('; ');
     el.setAttribute('role', 'menu');
     el.setAttribute('aria-label', 'Annotation actions');
     el.setAttribute('aria-hidden', 'true');
@@ -321,16 +322,18 @@ export function createAnnotationAuthoring(
     item.type = 'button';
     item.textContent = label;
     item.setAttribute('role', 'menuitem');
-    item.style.padding = '8px 16px';
-    item.style.cursor = 'pointer';
-    item.style.userSelect = 'none';
-    item.style.transition = 'background-color 0.15s';
-    item.style.background = 'transparent';
-    item.style.border = 'none';
-    item.style.color = 'inherit';
-    item.style.width = '100%';
-    item.style.textAlign = 'left';
-    item.style.font = 'inherit';
+    item.style.cssText = [
+      'padding: 8px 16px',
+      'cursor: pointer',
+      'user-select: none',
+      'transition: background-color 0.15s',
+      'background: transparent',
+      'border: none',
+      'color: inherit',
+      'width: 100%',
+      'text-align: left',
+      'font: inherit',
+    ].join('; ');
     item.addEventListener('mouseenter', () => {
       item.style.backgroundColor = '#2a2a3e';
     });
@@ -424,7 +427,7 @@ export function createAnnotationAuthoring(
   canvas.addEventListener('contextmenu', onContextMenuCapture, true);
   doc.addEventListener('click', onDocumentClick);
   doc.addEventListener('keydown', onKeyDown);
-  win.addEventListener('scroll', onRepositionTriggers, true);
+  win.addEventListener('scroll', onRepositionTriggers, { capture: true, passive: true });
   win.addEventListener('resize', onRepositionTriggers);
 
   const upstreamDispose = upstream.dispose.bind(upstream);
@@ -435,7 +438,7 @@ export function createAnnotationAuthoring(
     canvas.removeEventListener('contextmenu', onContextMenuCapture, true);
     doc.removeEventListener('click', onDocumentClick);
     doc.removeEventListener('keydown', onKeyDown);
-    win.removeEventListener('scroll', onRepositionTriggers, true);
+    win.removeEventListener('scroll', onRepositionTriggers, { capture: true });
     win.removeEventListener('resize', onRepositionTriggers);
     if (menu) {
       menu.remove();

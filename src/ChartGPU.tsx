@@ -4,7 +4,6 @@ import {
   useState,
   useImperativeHandle,
   forwardRef,
-  useCallback,
 } from 'react';
 import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
 import type {
@@ -15,24 +14,7 @@ import type {
   MouseOverParams,
 } from './types';
 import type { ChartGPUOptions, ChartGPUZoomRangeChangePayload } from '@chartgpu/chartgpu';
-
-/**
- * Debounce utility for throttling frequent calls.
- */
-function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delayMs: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return (...args: Parameters<T>) => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      fn(...args);
-    }, delayMs);
-  };
-}
+import { debounce } from './utils';
 
 /**
  * ChartGPU React component.
@@ -84,8 +66,32 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
     const instanceRef = useRef<ChartInstance | null>(null);
     const [chart, setChart] = useState<ChartInstance | null>(null);
     const mountedRef = useRef<boolean>(false);
-    const resizeObserverRef = useRef<ResizeObserver | null>(null);
     const gpuContextRef = useRef(gpuContext);
+
+    // --- Callback refs: keep handlers in refs so effects never re-subscribe ---
+    const onReadyRef = useRef(onReady);
+    onReadyRef.current = onReady;
+
+    const onClickRef = useRef(onClick);
+    onClickRef.current = onClick;
+
+    const onMouseOverRef = useRef(onMouseOver);
+    onMouseOverRef.current = onMouseOver;
+
+    const onMouseOutRef = useRef(onMouseOut);
+    onMouseOutRef.current = onMouseOut;
+
+    const onCrosshairMoveRef = useRef(onCrosshairMove);
+    onCrosshairMoveRef.current = onCrosshairMove;
+
+    const onDataAppendRef = useRef(onDataAppend);
+    onDataAppendRef.current = onDataAppend;
+
+    const onDeviceLostRef = useRef(onDeviceLost);
+    onDeviceLostRef.current = onDeviceLost;
+
+    const onZoomChangeRef = useRef(onZoomChange);
+    onZoomChangeRef.current = onZoomChange;
 
     // Expose imperative handle
     useImperativeHandle(
@@ -169,17 +175,6 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       []
     );
 
-    // Build effective options with theme override if provided
-    const getEffectiveOptions = useCallback((): ChartGPUOptions => {
-      if (theme !== undefined) {
-        return {
-          ...options,
-          theme,
-        };
-      }
-      return options;
-    }, [options, theme]);
-
     // Initialize chart on mount
     useEffect(() => {
       if (!containerRef.current) return;
@@ -191,7 +186,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
         try {
           if (!containerRef.current) return;
 
-          const effectiveOptions = getEffectiveOptions();
+          const effectiveOptions = theme !== undefined ? { ...options, theme } : options;
           const ctx = gpuContextRef.current;
           chartInstance = ctx
             ? await ChartGPULib.create(containerRef.current, effectiveOptions, ctx)
@@ -201,7 +196,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           if (mountedRef.current) {
             instanceRef.current = chartInstance;
             setChart(chartInstance);
-            onReady?.(chartInstance);
+            onReadyRef.current?.(chartInstance);
           } else {
             // Component unmounted during async create - dispose immediately
             chartInstance.dispose();
@@ -232,17 +227,17 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       const instance = chart;
       if (!instance || instance.disposed) return;
 
-      const effectiveOptions = getEffectiveOptions();
+      const effectiveOptions = theme !== undefined ? { ...options, theme } : options;
       instance.setOption(effectiveOptions);
-    }, [chart, options, theme, getEffectiveOptions]);
+    }, [chart, options, theme]);
 
     // Register/unregister click event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onClick) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: ClickParams) => {
-        onClick(payload);
+        onClickRef.current?.(payload);
       };
 
       instance.on('click', handler);
@@ -254,15 +249,15 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onClick]);
+    }, [chart]);
 
     // Register/unregister mouseover event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onMouseOver) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: MouseOverParams) => {
-        onMouseOver(payload);
+        onMouseOverRef.current?.(payload);
       };
 
       instance.on('mouseover', handler);
@@ -274,15 +269,15 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onMouseOver]);
+    }, [chart]);
 
     // Register/unregister mouseout event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onMouseOut) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: ClickParams) => {
-        onMouseOut(payload);
+        onMouseOutRef.current?.(payload);
       };
 
       instance.on('mouseout', handler);
@@ -294,15 +289,15 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onMouseOut]);
+    }, [chart]);
 
     // Register/unregister crosshairMove event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onCrosshairMove) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: Parameters<NonNullable<ChartGPUProps['onCrosshairMove']>>[0]) => {
-        onCrosshairMove(payload);
+        onCrosshairMoveRef.current?.(payload);
       };
 
       instance.on('crosshairMove', handler);
@@ -314,15 +309,15 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onCrosshairMove]);
+    }, [chart]);
 
     // Register/unregister dataAppend event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onDataAppend) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: Parameters<NonNullable<ChartGPUProps['onDataAppend']>>[0]) => {
-        onDataAppend(payload);
+        onDataAppendRef.current?.(payload);
       };
 
       instance.on('dataAppend', handler);
@@ -334,15 +329,15 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onDataAppend]);
+    }, [chart]);
 
     // Register/unregister deviceLost event handler
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onDeviceLost) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: Parameters<NonNullable<ChartGPUProps['onDeviceLost']>>[0]) => {
-        onDeviceLost(payload);
+        onDeviceLostRef.current?.(payload);
       };
 
       instance.on('deviceLost', handler);
@@ -354,7 +349,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onDeviceLost]);
+    }, [chart]);
 
     // Set up ResizeObserver for responsive sizing (debounced 100ms)
     useEffect(() => {
@@ -373,11 +368,9 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       });
 
       observer.observe(container);
-      resizeObserverRef.current = observer;
 
       return () => {
         observer.disconnect();
-        resizeObserverRef.current = null;
       };
       // Intentionally omitting containerRef.current from dependencies
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -388,11 +381,11 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
     // so consumers don't need to wait for user interaction to receive the first value.
     useEffect(() => {
       const instance = chart;
-      if (!instance || instance.disposed || !onZoomChange) return;
+      if (!instance || instance.disposed) return;
 
       const handler = (payload: ChartGPUZoomRangeChangePayload) => {
         // Map upstream payload to ZoomRange (strip `source`)
-        onZoomChange({ start: payload.start, end: payload.end });
+        onZoomChangeRef.current?.({ start: payload.start, end: payload.end });
       };
 
       instance.on('zoomRangeChange', handler);
@@ -400,7 +393,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       // Hydrate: fire once with the current zoom range (if non-null)
       const current = instance.getZoomRange();
       if (current) {
-        onZoomChange({ start: current.start, end: current.end });
+        onZoomChangeRef.current?.({ start: current.start, end: current.end });
       }
 
       return () => {
@@ -410,7 +403,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
           // instance may already be disposed; swallow
         }
       };
-    }, [chart, onZoomChange]);
+    }, [chart]);
 
     return (
       <div
