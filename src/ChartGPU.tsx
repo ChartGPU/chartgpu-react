@@ -67,6 +67,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
     const [chart, setChart] = useState<ChartInstance | null>(null);
     const mountedRef = useRef<boolean>(false);
     const gpuContextRef = useRef(gpuContext);
+    const createdWithOptionsRef = useRef<{ options: ChartGPUOptions; theme: ChartGPUProps['theme'] } | null>(null);
 
     // --- Callback refs: keep handlers in refs so effects never re-subscribe ---
     const onReadyRef = useRef(onReady);
@@ -186,6 +187,8 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
         try {
           if (!containerRef.current) return;
 
+          // Snapshot props passed to create() so the setOption effect can detect mid-flight changes
+          createdWithOptionsRef.current = { options, theme };
           const effectiveOptions = theme !== undefined ? { ...options, theme } : options;
           const ctx = gpuContextRef.current;
           chartInstance = ctx
@@ -213,6 +216,7 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       // Cleanup on unmount
       return () => {
         mountedRef.current = false;
+        createdWithOptionsRef.current = null;
 
         if (instanceRef.current && !instanceRef.current.disposed) {
           instanceRef.current.dispose();
@@ -222,10 +226,21 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Update chart when options or theme change
+    // Update chart when options or theme change.
+    // The first post-create invocation is unconditionally skipped because
+    // create() already received options and setOption races with async init (#16).
     useEffect(() => {
       const instance = chart;
       if (!instance || instance.disposed) return;
+
+      // Skip the first post-create invocation unconditionally (issue #16).
+      // create() already received options; calling setOption immediately races
+      // with internal async init and crashes on null axis ranges.
+      const created = createdWithOptionsRef.current;
+      createdWithOptionsRef.current = null;
+      if (created) {
+        return;
+      }
 
       const effectiveOptions = theme !== undefined ? { ...options, theme } : options;
       instance.setOption(effectiveOptions);

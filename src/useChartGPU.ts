@@ -67,6 +67,7 @@ export function useChartGPU(
 
   const mountedRef = useRef<boolean>(false);
   const gpuContextRef = useRef(gpuContext);
+  const createdWithOptionsRef = useRef<ChartGPUOptions | null>(null);
 
   // Initialize chart on mount
   useEffect(() => {
@@ -87,6 +88,8 @@ export function useChartGPU(
       try {
         if (!containerRef.current) return;
 
+        // Snapshot props passed to create() so the setOption effect can detect mid-flight changes
+        createdWithOptionsRef.current = options;
         const ctx = gpuContextRef.current;
         chartInstance = ctx
           ? await ChartGPULib.create(containerRef.current, options, ctx)
@@ -115,6 +118,7 @@ export function useChartGPU(
     // Cleanup on unmount
     return () => {
       mountedRef.current = false;
+      createdWithOptionsRef.current = null;
 
       if (chartInstance && !chartInstance.disposed) {
         chartInstance.dispose();
@@ -124,9 +128,20 @@ export function useChartGPU(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update chart when options change
+  // Update chart when options change.
+  // The first post-create invocation is unconditionally skipped because
+  // create() already received options and setOption races with async init (#16).
   useEffect(() => {
     if (!chart || chart.disposed) return;
+
+    // Skip the first post-create invocation unconditionally (issue #16).
+    // create() already received options; calling setOption immediately races
+    // with internal async init and crashes on null axis ranges.
+    const createdWith = createdWithOptionsRef.current;
+    createdWithOptionsRef.current = null;
+    if (createdWith) {
+      return;
+    }
 
     chart.setOption(options);
   }, [chart, options]);
