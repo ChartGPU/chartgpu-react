@@ -27,7 +27,9 @@
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "@chartgpu/chartgpu": "^0.2.8",
@@ -35,14 +37,19 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@chartgpu/chartgpu": "^0.2.8",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
-    "@chartgpu/chartgpu": "^0.2.8",
+    "@vitest/coverage-v8": "^4.0.18",
+    "jsdom": "^28.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.3.3",
     "vite": "^5.1.4",
-    "vite-plugin-dts": "^3.7.3"
+    "vite-plugin-dts": "^3.7.3",
+    "vitest": "^4.0.18"
   }
 }
