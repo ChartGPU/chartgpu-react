@@ -5,12 +5,12 @@
 /**
  * Debounce utility for throttling frequent calls.
  */
-export function debounce<T extends (...args: any[]) => void>(
-  fn: T,
+export function debounce<TArgs extends unknown[]>(
+  fn: (...args: TArgs) => void,
   delayMs: number
-): (...args: Parameters<T>) => void {
+): (...args: TArgs) => void {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  return (...args: Parameters<T>) => {
+  return (...args: TArgs) => {
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
     }

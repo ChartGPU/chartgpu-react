@@ -1,9 +1,10 @@
 /**
  * chartgpu-react
- * React bindings for ChartGPU - WebGPU-powered charting library
+ * React bindings for ChartGPU — WebGPU-powered high-performance charts
+ * Compatible with @chartgpu/chartgpu ^0.3.6
  */
 
-// Primary ChartGPU component (Story 6.18)
+// Primary ChartGPU component
 export { ChartGPU } from './ChartGPU';
 
 // Wrapper types for the ChartGPU component
@@ -18,17 +19,18 @@ export type {
   InterleavedXYData,
   XYArraysData,
   ChartGPUDataAppendPayload,
+  ChartGPUAppendDataOptions,
 } from './types';
 
-// useChartGPU hook (Story 6.19)
+// useChartGPU hook
 export { useChartGPU } from './useChartGPU';
 export type { UseChartGPUResult } from './useChartGPU';
 
-// Shared GPU context hook (ChartGPU v0.2.7+)
+// Shared GPU context hook (multi-chart dashboards)
 export { useGPUContext } from './useGPUContext';
 export type { UseGPUContextResult } from './useGPUContext';
 
-// Chart sync hook (connectCharts) - ChartGPU v0.2.3+
+// Chart sync hook (connectCharts)
 export { useConnectCharts } from './useConnectCharts';
 
 /**
@@ -61,6 +63,7 @@ export type {
   ChartGPUCrosshairMovePayload,
   ChartGPUZoomRangeChangePayload,
   ChartGPUDeviceLostPayload,
+  ZoomChangeSourceKind,
   RenderMode,
 
   // Hit testing
@@ -82,7 +85,16 @@ export type {
   PieSeriesConfig,
   ScatterSeriesConfig,
   CandlestickSeriesConfig,
+  OhlcSeriesConfig,
+  HeatmapSeriesConfig,
+  BandSeriesConfig,
+  ErrorBarSeriesConfig,
+  ImpulseSeriesConfig,
+  PointCloud3DSeriesConfig,
+  Surface3DSeriesConfig,
   SeriesConfig,
+  SeriesType,
+  SeriesSampling,
 
   // Style configurations
   LineStyleConfig,
@@ -92,6 +104,13 @@ export type {
   DataPoint,
   OHLCDataPoint,
   ScatterPointTuple,
+  HeatmapData,
+  HeatmapUpdate,
+  BandSeriesData,
+  ErrorBarSeriesData,
+  PointCloud3DData,
+  Surface3DGridData,
+  Surface3DUpdate,
 
   // Zoom / interaction
   DataZoomConfig,
@@ -121,4 +140,10 @@ export type {
   GridConfig,
   GridLinesConfig,
   GridLinesDirectionConfig,
+
+  // 3D
+  CoordinateSystem,
+  Chart3DCameraOptions,
+  Interaction3DOptions,
+  Axes3DOptions,
 } from '@chartgpu/chartgpu';

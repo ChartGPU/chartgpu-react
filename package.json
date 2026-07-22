@@ -1,7 +1,7 @@
 {
-  "name": "@chartgpu/chartgpu-react",
-  "version": "0.1.4",
-  "description": "React bindings for ChartGPU - WebGPU-powered charting library",
+  "name": "chartgpu-react",
+  "version": "0.3.0",
+  "description": "React bindings for ChartGPU — WebGPU-powered high-performance charts",
   "license": "MIT",
   "author": "",
   "type": "module",
@@ -21,35 +21,53 @@
     "react",
     "chart",
     "webgpu",
-    "visualization"
+    "visualization",
+    "streaming",
+    "typescript"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChartGPU/chartgpu-react.git"
+  },
+  "homepage": "https://github.com/ChartGPU/chartgpu-react#readme",
+  "bugs": {
+    "url": "https://github.com/ChartGPU/chartgpu-react/issues"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "npm run typecheck && vite build",
-    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "peerDependencies": {
-    "@chartgpu/chartgpu": "^0.2.8",
+    "@chartgpu/chartgpu": "^0.3.6",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": false
+    }
+  },
   "devDependencies": {
-    "@chartgpu/chartgpu": "^0.2.8",
+    "@chartgpu/chartgpu": "^0.3.6",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@vitejs/plugin-react": "^4.2.1",
-    "@vitest/coverage-v8": "^4.0.18",
-    "jsdom": "^28.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.3.3",
-    "vite": "^5.1.4",
-    "vite-plugin-dts": "^3.7.3",
-    "vitest": "^4.0.18"
-  }
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.3",
+    "@vitest/coverage-v8": "^4.1.10",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "sideEffects": false
 }

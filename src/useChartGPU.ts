@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { ChartGPU as ChartGPULib } from '@chartgpu/chartgpu';
 import type { ChartGPUCreateContext, ChartGPUOptions } from '@chartgpu/chartgpu';
 import type { ChartInstance } from './types';
@@ -58,7 +58,7 @@ export interface UseChartGPUResult {
  * ```
  */
 export function useChartGPU(
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: RefObject<HTMLElement | null>,
   options: ChartGPUOptions,
   gpuContext?: ChartGPUCreateContext
 ): UseChartGPUResult {

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import type { CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type CSSProperties, type ReactElement } from 'react';
 import type { ChartGPUOptions, ChartGPUInstance } from '@chartgpu/chartgpu';
 import { ChartGPU } from './ChartGPU';
 
@@ -74,7 +73,7 @@ export function ChartGPUChart({
   style,
   onInit,
   onDispose,
-}: ChartGPUChartProps): JSX.Element {
+}: ChartGPUChartProps): ReactElement {
   const didInitRef = useRef(false);
 
   const onInitRef = useRef(onInit);

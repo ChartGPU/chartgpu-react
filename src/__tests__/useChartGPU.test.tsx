@@ -190,3 +190,52 @@ describe('useChartGPU hook — createdWithOptionsRef race-condition fix', () => 
     unmount();
   });
 });
+
+describe('useChartGPU — gpuContext create path', () => {
+  it('passes gpuContext as the third argument to ChartGPU.create', async () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const gpuContext = {
+      adapter: { id: 'adapter' } as any,
+      device: { id: 'device' } as any,
+      pipelineCache: { id: 'cache' } as any,
+    };
+    const opts = makeOptions('hook-ctx');
+
+    const { result, unmount } = renderHook(
+      ({ options }: { options: ChartGPUOptions }) => {
+        const containerRef = useRef<HTMLElement>(container);
+        return useChartGPU(containerRef, options, gpuContext);
+      },
+      { initialProps: { options: opts } }
+    );
+
+    await waitFor(() => {
+      expect(result.current.isReady).toBe(true);
+    });
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    const args = mockCreate.mock.calls[0];
+    expect(args).toHaveLength(3);
+    expect(args[0]).toBe(container);
+    expect(args[1]).toBe(opts);
+    expect(args[2]).toBe(gpuContext);
+
+    unmount();
+    container.remove();
+  });
+
+  it('calls create with two args when gpuContext is omitted', async () => {
+    const opts = makeOptions('hook-no-ctx');
+    const { result, unmount } = renderUseChartGPU(opts);
+
+    await waitFor(() => {
+      expect(result.current.isReady).toBe(true);
+    });
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockCreate.mock.calls[0]).toHaveLength(2);
+
+    unmount();
+  });
+});
