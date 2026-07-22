@@ -100,10 +100,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
       () => ({
         getChart: () => instanceRef.current,
         getContainer: () => containerRef.current,
-        appendData: (seriesIndex: number, newPoints) => {
+        appendData: (seriesIndex, newPoints, options) => {
           const instance = instanceRef.current;
           if (instance && !instance.disposed) {
-            instance.appendData(seriesIndex, newPoints);
+            instance.appendData(seriesIndex, newPoints, options);
           }
         },
         renderFrame: () => {
@@ -139,10 +139,10 @@ export const ChartGPU = forwardRef<ChartGPUHandle, ChartGPUProps>(
             instance.setOption(newOptions);
           }
         },
-        setZoomRange: (start: number, end: number) => {
+        setZoomRange: (start: number, end: number, source?: unknown) => {
           const instance = instanceRef.current;
           if (instance && !instance.disposed) {
-            instance.setZoomRange(start, end);
+            instance.setZoomRange(start, end, source);
           }
         },
         setInteractionX: (x: number | null, source?: unknown) => {

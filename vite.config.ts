@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import dts from 'vite-plugin-dts';
 import { resolve } from 'path';
 
 export default defineConfig(({ command }) => {
@@ -17,16 +16,10 @@ export default defineConfig(({ command }) => {
     };
   }
 
-  // Build mode: library output
+  // Build mode: library JS only (declarations via `tsc -p tsconfig.build.json`)
+  // Note: vite-plugin-dts is incompatible with TypeScript 7's slim package API.
   return {
-    plugins: [
-      react(),
-      dts({
-        insertTypesEntry: true,
-        rollupTypes: true,
-        tsconfigPath: './tsconfig.build.json',
-      }),
-    ],
+    plugins: [react()],
     build: {
       lib: {
         entry: resolve(__dirname, 'src/index.ts'),
@@ -41,6 +34,7 @@ export default defineConfig(({ command }) => {
       },
       outDir: 'dist',
       emptyOutDir: true,
+      sourcemap: true,
     },
   };
 });

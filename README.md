@@ -29,8 +29,9 @@
 
 - **`ChartGPU` component (recommended)**: async create/dispose lifecycle + debounced `ResizeObserver` sizing
 - **Event props**: `onClick`, `onCrosshairMove`, `onZoomChange`, `onDataAppend`, `onDeviceLost`, etc.
-- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData`, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`, `needsRender`, `renderFrame`, `getRenderMode`, `setRenderMode`)
+- **Imperative `ref` API**: `ChartGPUHandle` (`getChart`, `getContainer`, `appendData` with optional `{ maxPoints }` FIFO, `setOption`, `setZoomRange`, `setInteractionX`, `getInteractionX`, `hitTest`, `needsRender`, `renderFrame`, `getRenderMode`, `setRenderMode`)
 - **Hooks**: `useChartGPU(...)`, `useGPUContext()`, `useConnectCharts(..., syncOptions?)`
+- **Multi-chart + streaming**: share a `GPUDevice` via `gpuContext` / `useGPUContext`, sync with `useConnectCharts`, stream with `appendData(..., { maxPoints })`
 - **Helper re-exports (from `@chartgpu/chartgpu`)**: `createChart`, `connectCharts`, `createPipelineCache`, `getPipelineCacheStats`, `destroyPipelineCache`, `createAnnotationAuthoring`
 
 ## Quick start
@@ -70,13 +71,16 @@ function MyChart() {
 npm install chartgpu-react @chartgpu/chartgpu react react-dom
 ```
 
+Peer dependency: **`@chartgpu/chartgpu` ^0.3.6** (aligned with this package’s 0.3.x line).
+
 ### Requirements
 
-- React 18.0.0 or higher
+- **React 18 or 19** (`react` / `react-dom` ≥ 18)
+- **TypeScript 5+** for consumers (this package is built and typechecked with **TypeScript 7**)
 - Browser with WebGPU support:
   - Chrome/Edge 113+
   - Safari 18+
-  - Firefox (not yet supported)
+  - Firefox: Windows 114+, Mac 145+, Linux nightly
 
 Check browser compatibility at [caniuse.com/webgpu](https://caniuse.com/webgpu).
 
@@ -134,6 +138,40 @@ disconnect();
 ```
 
 If you prefer a hook-driven approach, you can use `onReady` (or `useChartGPU`) to capture instances, then call `useConnectCharts(...)` once both are available.
+
+### Streaming append with FIFO window (`maxPoints`)
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { ChartGPU } from 'chartgpu-react';
+import type { ChartGPUHandle } from 'chartgpu-react';
+
+function StreamingChart() {
+  const ref = useRef<ChartGPUHandle>(null);
+  const xRef = useRef(0);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const x = xRef.current++;
+      ref.current?.appendData(0, [{ x, y: Math.sin(x * 0.05) }], { maxPoints: 50_000 });
+    }, 16);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <ChartGPU
+      ref={ref}
+      options={{
+        autoScroll: true,
+        series: [{ type: 'line', data: [], lineStyle: { width: 2, color: '#4facfe' } }],
+        xAxis: { type: 'value' },
+        yAxis: { type: 'value' },
+      }}
+      style={{ width: '100%', height: 320 }}
+    />
+  );
+}
+```
 
 ### External render mode (app-owned render loop)
 

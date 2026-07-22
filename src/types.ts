@@ -1,6 +1,6 @@
 /**
- * Type definitions for ChartGPU React wrapper
- * Story 6.18: Wrapper types for the new ChartGPU component
+ * Type definitions for ChartGPU React wrapper.
+ * Aligned with @chartgpu/chartgpu ^0.3.6.
  */
 
 import type { CSSProperties } from 'react';
@@ -19,7 +19,7 @@ import type {
 
 /**
  * Separate x/y/size arrays for cartesian series data.
- * Mirrors the upstream shape used by ChartGPU's `appendData(...)`.
+ * Mirrors ChartGPU's internal `XYArraysData` (not yet re-exported from package root).
  */
 export type XYArraysData = Readonly<{
   x: ArrayLike<number>;
@@ -29,29 +29,30 @@ export type XYArraysData = Readonly<{
 
 /**
  * Pre-interleaved XY cartesian data as a typed array view.
- * Data must be laid out as [x0, y0, x1, y1, ...].
- *
- * Note: This is a type-level convenience for `appendData(...)`. It matches
- * ChartGPU's public behavior but is not currently exported as a named type
- * from `@chartgpu/chartgpu` due to its package `exports` map.
+ * Layout: [x0, y0, x1, y1, ...].
  */
 export type InterleavedXYData = ArrayBufferView;
 
 /**
  * Union type for cartesian series data formats supported by `appendData(...)`.
- * Mirrors the upstream `CartesianSeriesData` type used internally by ChartGPU.
+ * Matches ChartGPU 0.3.x (`DataPoint | null` gaps allowed in object arrays).
  */
 export type CartesianSeriesData =
-  | ReadonlyArray<DataPoint>
+  | ReadonlyArray<DataPoint | null>
   | XYArraysData
   | InterleavedXYData;
 
 /**
+ * Optional second argument to `appendData` (ChartGPU 0.3.x).
+ * `maxPoints` is opt-in fixed-capacity ring / FIFO window for that call only.
+ */
+export type ChartGPUAppendDataOptions = Readonly<{
+  maxPoints?: number;
+}>;
+
+/**
  * Payload emitted by the ChartGPU `'dataAppend'` event.
- *
- * Note: ChartGPU emits this event in v0.2.7+ but does not currently export the
- * payload type from its package root due to its package `exports` map.
- * We provide this wrapper type so React consumers can strongly type `onDataAppend`.
+ * Not re-exported from `@chartgpu/chartgpu` package root; mirrored here for React consumers.
  */
 export type ChartGPUDataAppendPayload = Readonly<{
   readonly seriesIndex: number;
@@ -64,28 +65,23 @@ export type ChartGPUDataAppendPayload = Readonly<{
 
 /**
  * Bivariant callback helper (matches React's event handler variance behavior).
- * This preserves backwards-compatibility for userland handlers.
  */
-type BivariantCallback<T extends (...args: any[]) => any> = {
+type BivariantCallback<T extends (...args: never[]) => unknown> = {
   bivarianceHack(...args: Parameters<T>): ReturnType<T>;
 }['bivarianceHack'];
 
 /**
  * Type alias for the ChartGPU instance.
- * This provides a more React-friendly name while maintaining compatibility
- * with the underlying chartgpu library.
  */
 export type ChartInstance = ChartGPUInstance;
 
 /**
  * Event parameters for chart click events.
- * Wraps the underlying ChartGPUEventPayload with a React-friendly name.
  */
 export type ClickParams = ChartGPUEventPayload;
 
 /**
  * Event parameters for chart mouseover events.
- * Wraps the underlying ChartGPUEventPayload with a React-friendly name.
  */
 export type MouseOverParams = ChartGPUEventPayload;
 
@@ -98,9 +94,6 @@ export type ZoomRange = NonNullable<ReturnType<ChartGPUInstance['getZoomRange']>
 
 /**
  * Props interface for the ChartGPU React component.
- *
- * This component provides a declarative React wrapper around the imperative
- * ChartGPU library, handling initialization, updates, and cleanup.
  */
 export interface ChartGPUProps {
   /**
@@ -110,7 +103,7 @@ export interface ChartGPUProps {
   options: ChartGPUOptions;
 
   /**
-   * Optional shared GPU context for multi-chart dashboards (ChartGPU v0.2.7+).
+   * Optional shared GPU context for multi-chart dashboards.
    *
    * IMPORTANT: This prop is **init-only** (only read during `ChartGPU.create(...)`).
    * Changing it after mount has no effect.
@@ -135,23 +128,16 @@ export interface ChartGPUProps {
 
   /**
    * Callback invoked when the chart instance is ready after async initialization.
-   * Provides access to the underlying ChartGPU instance.
-   *
-   * @param chart - The initialized ChartGPU instance
    */
   onReady?: (chart: ChartInstance) => void;
 
   /**
    * Callback invoked when a chart element is clicked.
-   *
-   * @param params - Event payload containing click details
    */
   onClick?: (params: ClickParams) => void;
 
   /**
    * Callback invoked when the mouse hovers over a chart element.
-   *
-   * @param params - Event payload containing mouseover details
    */
   onMouseOver?: (params: MouseOverParams) => void;
 
@@ -162,27 +148,22 @@ export interface ChartGPUProps {
 
   /**
    * Callback invoked when the crosshair moves.
-   *
-   * @param payload - Crosshair move payload containing domain-space x and optional source
    */
   onCrosshairMove?: (payload: ChartGPUCrosshairMovePayload) => void;
 
   /**
-   * Callback invoked when data is appended via `appendData(...)` (ChartGPU v0.2.7+).
-   * Useful for coordinated streaming dashboards and cross-chart synchronization.
+   * Callback invoked when data is appended via `appendData(...)`.
    */
   onDataAppend?: (payload: ChartGPUDataAppendPayload) => void;
 
   /**
-   * Callback invoked when a shared GPU device is lost (ChartGPU v0.2.7+).
+   * Callback invoked when a shared GPU device is lost.
    * Most useful when using `gpuContext` to share a `GPUDevice` across charts.
    */
   onDeviceLost?: (payload: ChartGPUDeviceLostPayload) => void;
 
   /**
    * Callback invoked when the chart zoom range changes.
-   *
-   * @param range - The new zoom range with start and end values
    */
   onZoomChange?: BivariantCallback<(range: ZoomRange) => void>;
 }
@@ -190,45 +171,36 @@ export interface ChartGPUProps {
 /**
  * Imperative handle interface for the ChartGPU component.
  *
- * Exposed via React.forwardRef to allow parent components to interact
- * directly with the chart instance using imperative methods.
- *
- * Example usage:
+ * Example:
  * ```tsx
  * const chartRef = useRef<ChartGPUHandle>(null);
- *
- * // Later:
- * chartRef.current?.appendData(0, [{ x: 10, y: 20 }]);
+ * chartRef.current?.appendData(0, newPoints, { maxPoints: 50_000 });
  * ```
  */
 export interface ChartGPUHandle {
   /**
    * Get the underlying ChartGPU instance.
    * Returns null if the chart hasn't been initialized yet or has been disposed.
-   *
-   * @returns The ChartGPU instance or null
    */
   getChart(): ChartGPUInstance | null;
 
   /**
    * Get the container element used to mount the chart.
-   * Useful for wiring up helpers like `createAnnotationAuthoring(...)`.
    */
   getContainer(): HTMLDivElement | null;
 
   /**
    * Append new data points to an existing series.
-   * This is more efficient than replacing the entire dataset.
-   *
-   * @param seriesIndex - Zero-based index of the series to update
-   * @param newPoints - Array of data points to append
+   * Prefer `{ maxPoints }` for FIFO / streaming windows over sliding-window `setOption`.
    */
-  appendData(seriesIndex: number, newPoints: CartesianSeriesData | OHLCDataPoint[]): void;
+  appendData(
+    seriesIndex: number,
+    newPoints: CartesianSeriesData | OHLCDataPoint[],
+    options?: ChartGPUAppendDataOptions
+  ): void;
 
   /**
    * Render a single frame (external render mode only).
-   *
-   * @returns true if a frame was rendered, false if already clean
    */
   renderFrame(): boolean;
 
@@ -249,27 +221,18 @@ export interface ChartGPUHandle {
 
   /**
    * Replace the entire chart options.
-   * Note: This replaces the full options object, not a partial update.
-   *
-   * @param options - New complete chart configuration
    */
   setOption(options: ChartGPUOptions): void;
 
   /**
    * Programmatically set the zoom range (percent-space).
    * No-op when zoom is disabled on the chart.
-   *
-   * @param start - Start of zoom range (0-100)
-   * @param end - End of zoom range (0-100)
    */
-  setZoomRange(start: number, end: number): void;
+  setZoomRange(start: number, end: number, source?: unknown): void;
 
   /**
    * Programmatically drive the crosshair / tooltip to a domain-space x value.
    * Passing `null` clears the crosshair.
-   *
-   * @param x - Domain-space x value, or null to clear
-   * @param source - Optional source identifier (useful for sync disambiguation)
    */
   setInteractionX(x: number | null, source?: unknown): void;
 
@@ -280,17 +243,12 @@ export interface ChartGPUHandle {
 
   /**
    * Perform hit-testing on a pointer or mouse event.
-   * Returns coordinates and matched chart element (if any).
-   *
-   * @param e - Pointer or mouse event to test
-   * @returns Hit-test result with coordinates and optional match
    */
   hitTest(e: PointerEvent | MouseEvent): ChartGPUHitTestResult;
 }
 
 /**
- * Re-export ThemeConfig for convenience.
- * This allows consumers to import all types from the wrapper package.
+ * Re-export common core types for convenience.
  */
 export type {
   ThemeConfig,

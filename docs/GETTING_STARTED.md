@@ -10,8 +10,9 @@ npm install chartgpu-react @chartgpu/chartgpu react react-dom
 
 ## Requirements
 
-- **React**: 18+
-- **WebGPU**: a browser with `navigator.gpu` support (Chrome/Edge 113+, Safari 18+)
+- **@chartgpu/chartgpu**: ^0.3.6 (peer)
+- **React**: 18 or 19
+- **WebGPU**: a browser with `navigator.gpu` support (Chrome/Edge 113+, Safari 18+, modern Firefox)
 
 If WebGPU is not available, chart creation will fail.
 
@@ -65,7 +66,27 @@ See [Streaming recipe](./recipes/streaming.md).
 
 ## React 18 StrictMode
 
-In development, React 18 StrictMode intentionally runs effects twice (mount → unmount → mount). `ChartGPU` and `useChartGPU` are written to be safe under this behavior (async create + cleanup ordering).
+In development, React 18 StrictMode intentionally runs effects twice (mount → unmount → mount). `ChartGPU`, `useChartGPU`, and `useGPUContext` are written to be safe under this behavior:
+
+- **`ChartGPU` / `useChartGPU`**: async create + cleanup ordering (dispose if unmounted before create resolves).
+- **`useGPUContext`**: a shared init promise so StrictMode remount reuses one adapter/device/`PipelineCache` acquisition instead of requesting a second device.
+
+## Testing (unit coverage map)
+
+Unit tests live under `src/__tests__/` (Vitest + jsdom). They mock `@chartgpu/chartgpu` and do **not** require a real WebGPU device (except `useGPUContext`, which stubs `navigator.gpu`).
+
+| Area | File |
+|------|------|
+| Create / `setOption` race (issue #16) | `src/__tests__/ChartGPU.test.tsx`, `src/__tests__/useChartGPU.test.tsx` |
+| Handle `appendData` + `{ maxPoints }`, `setZoomRange` source, external render | `src/__tests__/ChartGPU.test.tsx` |
+| Handle smoke (`getChart`, `setOption`, interaction X, `hitTest`) | `src/__tests__/ChartGPU.test.tsx` |
+| Event props (`onDataAppend`, `onDeviceLost`) | `src/__tests__/ChartGPU.test.tsx` |
+| `gpuContext` → `ChartGPU.create` third arg | `src/__tests__/ChartGPU.test.tsx`, `src/__tests__/useChartGPU.test.tsx` |
+| `useConnectCharts` | `src/__tests__/useConnectCharts.test.tsx` |
+| `useGPUContext` | `src/__tests__/useGPUContext.test.tsx` |
+| Public export surface | `src/__tests__/exports.test.ts` |
+
+Run: `npm test`, `npm run typecheck`, `npm run build`.
 
 ## Next steps
 

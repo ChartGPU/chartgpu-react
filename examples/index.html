@@ -3,93 +3,184 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChartGPU React - Examples</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: #0a0a0a;
-        color: #e0e0e0;
-        line-height: 1.6;
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .subtitle {
-        color: #a0a0a0;
-        margin-bottom: 3rem;
-        font-size: 1.1rem;
-      }
-
-      .example-section {
-        margin-bottom: 3rem;
-      }
-
-      .example-title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #f0f0f0;
-      }
-
-      .chart-container {
-        background: #1a1a1a;
-        border: 1px solid #2a2a2a;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-      }
-
-      .error-message {
-        background: #2a1515;
-        border: 1px solid #5a2020;
-        border-radius: 8px;
-        padding: 1rem;
-        color: #ff6b6b;
-        margin-bottom: 1rem;
-      }
-
-      .info-box {
-        background: #1a2a3a;
-        border: 1px solid #2a4a6a;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        color: #9ab4d0;
-      }
-
-      .info-box strong {
-        color: #b0d0ff;
-      }
-    </style>
+    <title>ChartGPU React — Examples</title>
+    <meta name="description" content="chartgpu-react examples against @chartgpu/chartgpu" />
+    <link rel="icon" type="image/png" href="./assets/chartgpu.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./tokens.css" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>ChartGPU React</h1>
-      <p class="subtitle">WebGPU-powered charting for React applications</p>
-      
-      <div id="root"></div>
-    </div>
+    <header class="nav" role="banner">
+      <a class="nav-brand" href="./index.html" aria-label="ChartGPU React examples">
+        <img src="./assets/chartgpu.png" alt="" width="120" height="22" />
+        <span class="nav-version">react 0.3.0</span>
+      </a>
+      <div class="nav-actions">
+        <a
+          class="nav-link nav-link--hide-sm"
+          href="https://github.com/ChartGPU/chartgpu-react"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+            />
+          </svg>
+          GitHub
+        </a>
+        <a
+          class="nav-link nav-link--hide-sm"
+          href="https://github.com/ChartGPU/ChartGPU"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Core
+        </a>
+        <a class="nav-cta" href="#demos">Examples</a>
+      </div>
+    </header>
 
+    <section class="plate-hero" id="hero" aria-label="3D surface and point cloud">
+      <div id="hero-root" class="plate-hero__canvas"></div>
+    </section>
+
+    <main class="page">
+      <section class="intro" aria-labelledby="intro-title">
+        <h1 id="intro-title" class="intro-title">Examples</h1>
+        <p class="intro-lede">
+          Interactive demos for <code>chartgpu-react</code> on <code>@chartgpu/chartgpu@^0.3.6</code>.
+          Source: <code>examples/main.tsx</code>.
+        </p>
+        <div class="hero-install">
+          <div class="install-bar" aria-label="Install command">
+            <span class="install-prompt">$</span>
+            <code class="install-cmd">npm i chartgpu-react @chartgpu/chartgpu</code>
+          </div>
+          <button
+            type="button"
+            class="install-copy"
+            id="install-copy"
+            data-copy="npm i chartgpu-react @chartgpu/chartgpu"
+          >
+            Copy
+          </button>
+        </div>
+      </section>
+
+      <nav class="index" aria-labelledby="index-title">
+        <div class="index-head">
+          <h2 id="index-title" class="index-title">Jump to</h2>
+          <span class="index-count">8 examples</span>
+        </div>
+        <ul class="index-grid">
+          <li>
+            <a class="index-card" href="#hero">
+              <span class="index-card__title">3D terrain + LiDAR</span>
+              <span class="index-card__desc">surface3d + pointCloud3d</span>
+              <span class="index-card__api">cartesian3d</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#point-cloud-3d">
+              <span class="index-card__title">3D point cloud</span>
+              <span class="index-card__desc">80k points · colorBy</span>
+              <span class="index-card__api">pointCloud3d</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#scatter-density">
+              <span class="index-card__title">Scatter density</span>
+              <span class="index-card__desc">500k points</span>
+              <span class="index-card__api">mode: density</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#spectrogram">
+              <span class="index-card__title">Spectrogram</span>
+              <span class="index-card__desc">heatmap stream</span>
+              <span class="index-card__api">updateHeatmap</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#streaming-apm">
+              <span class="index-card__title">Multi-chart stream</span>
+              <span class="index-card__desc">shared device · sync</span>
+              <span class="index-card__api">useGPUContext</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#band-confidence">
+              <span class="index-card__title">Band series</span>
+              <span class="index-card__desc">y / y1 fill</span>
+              <span class="index-card__api">type: band</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#candlestick">
+              <span class="index-card__title">Candlestick</span>
+              <span class="index-card__desc">OHLC appendData</span>
+              <span class="index-card__api">appendData</span>
+            </a>
+          </li>
+          <li>
+            <a class="index-card" href="#synced-hooks">
+              <span class="index-card__title">Chart sync</span>
+              <span class="index-card__desc">crosshair + zoom</span>
+              <span class="index-card__api">useConnectCharts</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div id="demos">
+        <div id="root" class="examples"></div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-meta">
+        <a href="https://github.com/ChartGPU/chartgpu-react" target="_blank" rel="noopener noreferrer"
+          >chartgpu-react</a
+        >
+        <a href="https://github.com/ChartGPU/ChartGPU" target="_blank" rel="noopener noreferrer"
+          >@chartgpu/chartgpu</a
+        >
+        <a href="https://www.npmjs.com/package/chartgpu-react" target="_blank" rel="noopener noreferrer"
+          >npm</a
+        >
+        <span>MIT</span>
+      </div>
+    </footer>
+
+    <script type="module">
+      const btn = document.getElementById('install-copy');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          const text = btn.getAttribute('data-copy') || '';
+          try {
+            await navigator.clipboard.writeText(text);
+            btn.textContent = 'Copied';
+            btn.classList.add('is-copied');
+            window.setTimeout(() => {
+              btn.textContent = 'Copy';
+              btn.classList.remove('is-copied');
+            }, 1400);
+          } catch {
+            btn.textContent = 'Failed';
+            window.setTimeout(() => {
+              btn.textContent = 'Copy';
+            }, 1400);
+          }
+        });
+      }
+    </script>
     <script type="module" src="/examples/main.tsx"></script>
   </body>
 </html>

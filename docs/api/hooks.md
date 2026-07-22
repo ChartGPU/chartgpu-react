@@ -113,8 +113,9 @@ function useGPUContext(): {
 - On mount, requests a `GPUAdapter` (high-performance preference) and `GPUDevice`, then creates a `PipelineCache`.
 - All fields are `null` until initialization completes. `isReady` becomes `true` once both `adapter` and `device` are available.
 - If WebGPU is not supported or adapter/device acquisition fails, `error` is set and other fields remain `null`.
-- Safe in React 18 StrictMode dev (uses a ref guard to prevent double-initialization).
-- Initialization runs once on mount and cannot be re-triggered.
+- Safe in React 18 StrictMode dev: a **shared in-flight/completed init promise** ensures a single adapter/device/`PipelineCache` acquisition. The first effect may be cancelled by StrictMode’s simulated unmount; the second effect re-subscribes to the **same** promise and applies the result (it does **not** call `requestAdapter` again).
+- Initialization runs once per hook instance and cannot be re-triggered.
+- **Lifecycle / resource ownership:** the hook does **not** call `GPUDevice.destroy()` or `destroyPipelineCache` on unmount. It is intended for a **long-lived dashboard parent**. Mounting briefly and unmounting mid-init can leave a native device alive until page unload (auto-destroy would race with StrictMode remount, which reuses the shared promise). Keep `useGPUContext()` mounted for the process lifetime of the shared charts, or manage teardown yourself if you truly need a short-lived context.
 
 ### Usage with `<ChartGPU>`
 

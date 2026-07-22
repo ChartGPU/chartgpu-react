@@ -5,8 +5,10 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "rootDir": "src",
+    "allowImportingTsExtensions": false
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "examples"]
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/__tests__", "examples"]
 }

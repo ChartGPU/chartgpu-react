@@ -33,6 +33,7 @@ coverage
 *.swp
 *.swo
 *~
+.hallmark
 
 
 # Claude
