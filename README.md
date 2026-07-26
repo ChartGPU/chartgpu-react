@@ -26,7 +26,7 @@
 
 Use it when Chart.js, ECharts, or uPlot hit streaming or multi-panel walls. Commercial GPU seats often ship WebGL fallback and broader catalog; ChartGPU is the open WebGPU-only embed.
 
-Product surface: [chartgpu.io](https://chartgpu.io) · [docs](https://chartgpu.io/docs/) · [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) · [core repo](https://github.com/ChartGPU/ChartGPU)
+Demo and docs: [chartgpu.io](https://chartgpu.io) · [docs](https://chartgpu.io/docs/) · [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) · [core repo](https://github.com/ChartGPU/ChartGPU)
 
 ---
 
@@ -290,7 +290,7 @@ function CandlestickStreaming() {
 
 | | |
 |---|---|
-| [Docs hub](https://chartgpu.io/docs/) | Guides, series, playground |
+| [Docs hub](https://chartgpu.io/docs/) | Guides and series docs |
 | [Getting started](https://chartgpu.io/docs/getting-started/) | Install and first chart |
 | [Streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) | Shared device, multi-chart |
 | [Performance](https://chartgpu.io/docs/performance/) | Density, sampling, GPU sharing |
