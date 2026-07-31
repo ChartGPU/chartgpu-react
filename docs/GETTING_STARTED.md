@@ -10,7 +10,7 @@ npm install chartgpu-react @chartgpu/chartgpu react react-dom
 
 ## Requirements
 
-- **@chartgpu/chartgpu**: ^0.3.6 (peer)
+- **@chartgpu/chartgpu**: ^0.3.9 (peer)
 - **React**: 18 or 19
 - **WebGPU**: a browser with `navigator.gpu` support (Chrome/Edge 113+, Safari 18+, modern Firefox)
 
