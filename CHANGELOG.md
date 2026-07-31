@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.1
+
+Aligned with **@chartgpu/chartgpu ^0.3.9**.
+
+### Dependencies
+
+- Peer / dev: `@chartgpu/chartgpu` **^0.3.9** (was ^0.3.6)
+
+### Docs
+
+- README redesigned to match the ChartGPU core repository layout (cleaner header, overview, install, features, browser support tables)
+- Version pins updated in getting started, examples, and source comments
+
 ## 0.3.0
 
 Aligned with **@chartgpu/chartgpu ^0.3.6** and modern React/TypeScript tooling.

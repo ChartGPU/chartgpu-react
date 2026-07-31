@@ -1,7 +1,7 @@
 /**
  * chartgpu-react
  * React bindings for ChartGPU — WebGPU-powered high-performance charts
- * Compatible with @chartgpu/chartgpu ^0.3.6
+ * Compatible with @chartgpu/chartgpu ^0.3.9
  */
 
 // Primary ChartGPU component

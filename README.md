@@ -1,32 +1,42 @@
-<p align="center" style="margin-bottom:0; margin-top:20px;">
-  <img src="docs/assets/chartgpu.png" alt="ChartGPU" width="400">
+<p align="center">
+  <img src="docs/assets/chartgpu.png" alt="ChartGPU" width="360">
 </p>
 
-<p align="center" style="margin-top:-18px;">
-  React bindings for <a href="https://github.com/ChartGPU/ChartGPU">ChartGPU</a>: MIT-licensed WebGPU charts for dense real-time, multi-series and multi-panel dashboards.
+<p align="center">
+  React bindings for <a href="https://github.com/ChartGPU/ChartGPU">ChartGPU</a> —
+  WebGPU charts for large datasets, real-time streaming, multi-chart dashboards, and 3D series.
+  MIT licensed.
 </p>
 
-<div align="center">
+<p align="center">
+  <a href="https://www.npmjs.com/package/chartgpu-react"><img src="https://img.shields.io/npm/v/chartgpu-react" alt="npm"></a>
+  <a href="https://github.com/ChartGPU/chartgpu-react/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT"></a>
+  <a href="https://chartgpu.io/docs/getting-started/"><img src="https://img.shields.io/badge/docs-getting%20started-blue" alt="docs"></a>
+  <a href="https://chartgpu.io"><img src="https://img.shields.io/badge/demo-chartgpu.io-brightgreen" alt="demo"></a>
+  <a href="https://github.com/mikbry/awesome-webgpu"><img src="https://awesome.re/mentioned-badge.svg" alt="Featured in Awesome WebGPU" height="20" /></a>
+</p>
 
-[<img src="docs/assets/powered-by-webgpu.svg" alt="Powered by WebGPU" height="28" />](#browser-support-webgpu-required)
-[![npm version](https://img.shields.io/npm/v/chartgpu-react?style=for-the-badge&color=blue)](https://www.npmjs.com/package/chartgpu-react)
-[![NPM Downloads](https://img.shields.io/npm/dm/chartgpu-react?style=for-the-badge&color=%2368cc49)](https://www.npmjs.com/package/chartgpu-react)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/ChartGPU/chartgpu-react/blob/main/LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge)](https://chartgpu.io)
-[![Documentation](https://img.shields.io/badge/Documentation-Getting%20Started-blue?style=for-the-badge)](https://chartgpu.io/docs/getting-started/)
-[![API Reference](https://img.shields.io/badge/API-Reference-blue?style=for-the-badge)](./docs/API.md)
+<p align="center">
+  <a href="https://chartgpu.io">Live demo</a> ·
+  <a href="https://chartgpu.io/docs/">Docs</a> ·
+  <a href="./docs/API.md">React API</a> ·
+  <a href="https://github.com/ChartGPU/ChartGPU">Core library</a>
+</p>
 
-[<img src="https://hackerbadge.now.sh/api?id=46706528" alt="Featured on Hacker News" height="30" />](https://news.ycombinator.com/item?id=46706528)
+---
 
-[<img src="https://awesome.re/mentioned-badge.svg" alt="Featured in Awesome WebGPU" style="height: 30px;" />](https://github.com/mikbry/awesome-webgpu)
+## Overview
 
-</div>
+`chartgpu-react` is a thin React + TypeScript wrapper around [`@chartgpu/chartgpu`](https://www.npmjs.com/package/@chartgpu/chartgpu). Core charting stays in ChartGPU; this package handles:
 
-`chartgpu-react` is a thin React + TypeScript wrapper around [`@chartgpu/chartgpu`](https://www.npmjs.com/package/@chartgpu/chartgpu): lifecycle, resize, events, refs, and multi-chart GPU sharing in React. Core charting stays in ChartGPU (MIT commercial embed, zero npm runtime dependencies in core, WebGPU required, no WebGL fallback).
+- Async create/dispose lifecycle and debounced resize
+- Declarative event props and imperative `ChartGPUHandle` ref
+- Shared-device multi-chart via `useGPUContext` / `gpuContext`
+- Chart sync via `useConnectCharts` / `connectCharts`
 
-Use it when Chart.js, ECharts, or uPlot hit streaming or multi-panel walls. Commercial GPU seats often ship WebGL fallback and broader catalog; ChartGPU is the open WebGPU-only embed.
+ChartGPU renders with **WebGPU** (not Canvas2D or WebGL). There is **no WebGL/Canvas fallback**. Unsupported browsers must be gated by the host app.
 
-Demo and docs: [chartgpu.io](https://chartgpu.io) · [docs](https://chartgpu.io/docs/) · [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) · [core repo](https://github.com/ChartGPU/ChartGPU)
+Demo and product docs: [chartgpu.io](https://chartgpu.io) · [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/)
 
 ---
 
@@ -36,11 +46,9 @@ Demo and docs: [chartgpu.io](https://chartgpu.io) · [docs](https://chartgpu.io/
 npm install chartgpu-react @chartgpu/chartgpu react react-dom
 ```
 
-Peer dependency: **`@chartgpu/chartgpu` ^0.3.6** (aligned with this package’s 0.3.x line). React 18 or 19.
+Peer dependency: **`@chartgpu/chartgpu` ^0.3.9**. React 18 or 19.
 
----
-
-## Quick start
+### Minimal example
 
 ```tsx
 import { ChartGPU } from 'chartgpu-react';
@@ -48,39 +56,34 @@ import type { ChartGPUOptions } from 'chartgpu-react';
 
 function MyChart() {
   const options: ChartGPUOptions = {
-    series: [
-      {
-        type: 'line',
-        data: {
-          x: new Float64Array([0, 1, 2, 3]),
-          y: new Float64Array([0, 1, 4, 9]),
-        },
-        lineStyle: { width: 2, color: '#667eea' },
+    series: [{
+      type: 'line',
+      data: {
+        x: new Float64Array([0, 1, 2]),
+        y: new Float64Array([1, 3, 2]),
       },
-    ],
-    xAxis: { type: 'value' },
-    yAxis: { type: 'value' },
+    }],
   };
 
-  return <ChartGPU options={options} style={{ width: '100%', height: '400px' }} />;
+  return <ChartGPU options={options} style={{ width: '100%', height: 400 }} />;
 }
 ```
 
-Object / `[x,y]` tuples are fine for tiny demos; prefer typed-array columns at scale.
+Prefer column-shaped x/y at scale; object / `[x,y]` tuples are fine for small demos. Requires a WebGPU-capable browser (see [Browser support](#browser-support)).
 
 ---
 
-## Why chartgpu-react
+## Features
 
-| | |
-|---|---|
-| **React lifecycle** | Async create/dispose, debounced `ResizeObserver` sizing |
-| **Dense real-time jobs** | Multi-series streaming, multi-panel dashboards, finance, heatmaps (via core) |
-| **Shared-device multi-panel** | `useGPUContext` / `gpuContext` prop (recommended for ≥3 charts); `useConnectCharts` / `connectCharts` |
-| **Ring FIFO streaming** | `ref.appendData(..., { maxPoints })`; heatmap/surface stream APIs on core |
-| **Events and refs** | `onClick`, `onCrosshairMove`, `onZoomChange`, `onDataAppend`, `onDeviceLost`, …; `ChartGPUHandle` imperative API |
-| **MIT commercial embed** | MIT wrapper; core density stays free under MIT with no feature gates on FIFO, zoom, multi-chart, or finance series |
-| **WebGPU-only** | Same browser gate as core; no WebGL fallback |
+- **React lifecycle** — async create/dispose, StrictMode-safe, debounced `ResizeObserver` sizing
+- **Streaming** — `ref.appendData(..., { maxPoints })` FIFO ring; heatmap/surface stream APIs on core (`updateHeatmap`, `updateSurface3D`)
+- **Multi-chart** — `useGPUContext` + `gpuContext` prop (≥3 charts recommended); zoom sync via `useConnectCharts` / `connectCharts`
+- **Events and refs** — `onClick`, `onCrosshairMove`, `onZoomChange`, `onDataAppend`, `onDeviceLost`, …; full `ChartGPUHandle` imperative API
+- **External render mode** — app-owned rAF with `renderMode: 'external'`, `needsRender()`, `renderFrame()`
+- **Series via core** — line, area, bar, scatter, pie, candlestick, ohlc, heatmap, band, errorBar, impulse, step, stacked mountain, 3D (`pointCloud3d`, `surface3d`)
+- **MIT commercial embed** — wrapper and core density (FIFO, zoom, multi-chart, finance series) stay open under MIT
+
+Core architecture: [ChartGPU ARCHITECTURE](https://github.com/ChartGPU/ChartGPU/blob/main/docs/ARCHITECTURE.md). Performance: [chartgpu.io/docs/performance](https://chartgpu.io/docs/performance/).
 
 ---
 
@@ -110,9 +113,12 @@ function StreamingChart() {
     const id = window.setInterval(() => {
       const x0 = t.current;
       const x = new Float64Array([x0, x0 + 1, x0 + 2]);
-      const y = new Float64Array([Math.sin(x0 * 0.05), Math.sin((x0 + 1) * 0.05), Math.sin((x0 + 2) * 0.05)]);
+      const y = new Float64Array([
+        Math.sin(x0 * 0.05),
+        Math.sin((x0 + 1) * 0.05),
+        Math.sin((x0 + 2) * 0.05),
+      ]);
       t.current += 3;
-      // Density path: column payload + fixed-capacity ring
       ref.current?.appendData(0, { x, y }, { maxPoints: 50_000 });
     }, 16);
     return () => window.clearInterval(id);
@@ -123,15 +129,10 @@ function StreamingChart() {
       ref={ref}
       options={{
         autoScroll: true,
-        series: [
-          {
-            type: 'line',
-            data: { x: new Float64Array(0), y: new Float64Array(0) },
-            lineStyle: { width: 2, color: '#4facfe' },
-          },
-        ],
-        xAxis: { type: 'value' },
-        yAxis: { type: 'value' },
+        series: [{
+          type: 'line',
+          data: { x: new Float64Array(0), y: new Float64Array(0) },
+        }],
       }}
       style={{ width: '100%', height: 320 }}
     />
@@ -141,7 +142,9 @@ function StreamingChart() {
 
 ---
 
-## Multi-chart dashboards (shared GPU device)
+## Multi-chart (shared device)
+
+For three or more charts on one page, create a single adapter/device/pipeline cache and pass it into each chart. Charts do not destroy a shared device on dispose.
 
 ```tsx
 import { ChartGPU, useGPUContext } from 'chartgpu-react';
@@ -166,11 +169,11 @@ function Dashboard() {
 }
 ```
 
-Recommended for ≥3 charts. Full recipes: [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) · [chart-sync recipe](./docs/recipes/chart-sync.md) · [core multi-chart cookbook](https://github.com/ChartGPU/ChartGPU/blob/main/docs/guides/multichart-dashboard-cookbook.md)
+Recipes: [streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) · [chart-sync](./docs/recipes/chart-sync.md) · [core multi-chart cookbook](https://github.com/ChartGPU/ChartGPU/blob/main/docs/guides/multichart-dashboard-cookbook.md)
 
 ---
 
-## More feature snippets
+## More snippets
 
 ### Crosshair / interaction X
 
@@ -284,28 +287,48 @@ function CandlestickStreaming() {
 
 ---
 
+## Browser support
+
+WebGPU only. No WebGL path.
+
+| Browser | Support |
+|---------|---------|
+| Chrome / Edge | 113+ |
+| Safari | 18+ |
+| Firefox | Windows 114+; macOS 145+; Linux incomplete — see [gpuweb status](https://github.com/gpuweb/gpuweb/wiki/Implementation-Status) |
+
+Detect `navigator.gpu` before creating charts. Do not leave an unsupported user on a blank canvas without UI.
+
+```ts
+if (!navigator.gpu) {
+  // fail closed: show UI, do not leave an empty chart
+}
+```
+
+If you need Canvas/SVG or dual WebGL+WebGPU backends, use a library that ships those fallbacks.
+
+---
+
 ## Documentation
 
 ### chartgpu.io (core product)
 
-| | |
-|---|---|
+| Resource | Description |
+|----------|-------------|
 | [Docs hub](https://chartgpu.io/docs/) | Guides and series docs |
 | [Getting started](https://chartgpu.io/docs/getting-started/) | Install and first chart |
+| [API reference](https://chartgpu.io/docs/api/) | `create`, options, streaming, interaction, 3D |
 | [Streaming dashboards](https://chartgpu.io/docs/streaming-dashboards/) | Shared device, multi-chart |
 | [Performance](https://chartgpu.io/docs/performance/) | Density, sampling, GPU sharing |
+| [Theming](https://chartgpu.io/docs/theming/) | Dark / light / custom |
 
 ### This repository (React)
 
-| | |
-|---|---|
+| Resource | Description |
+|----------|-------------|
 | [Getting started](./docs/GETTING_STARTED.md) | React install and first component |
 | [API](./docs/API.md) | Component, hooks, handle |
 | [Recipes](./docs/recipes/) | Crosshair, sync, streaming, annotations, dataZoom |
-
----
-
-## Examples
 
 ```bash
 npm install
@@ -317,32 +340,13 @@ See [`examples/main.tsx`](./examples/main.tsx).
 
 ---
 
-## Browser support (WebGPU required)
-
-No WebGL fallback. Gate unsupported browsers in your app (capability detect; never a blank canvas).
-
-| Browser | Notes |
-|---------|--------|
-| Chrome / Edge | 113+ |
-| Safari | 18+ |
-| Firefox | Windows 114+, macOS 145+, Linux still incomplete on [gpuweb status](https://github.com/gpuweb/gpuweb/wiki/Implementation-Status) |
-
-```ts
-if (!navigator.gpu) {
-  // fail closed: show UI, do not leave an empty chart
-}
-```
-
-WebGPU-only is intentional. Need Canvas/SVG or dual WebGL+WebGPU? Use a stack that ships a fallback.
-
----
-
 ## Development
 
 ```bash
 npm install
 npm run typecheck
 npm run build
+npm run test
 npm run dev
 ```
 
@@ -401,7 +405,7 @@ Issues and pull requests welcome. For larger changes, open an issue first.
 
 ## License
 
-[MIT](LICENSE). Free for commercial embedding. ChartGPU core keeps density, FIFO, multi-chart, and finance series in the open core.
+[MIT](LICENSE). Free for commercial use. ChartGPU core keeps density, FIFO, multi-chart, and finance series in the open core.
 
 ## Related
 

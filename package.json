@@ -1,6 +1,6 @@
 {
   "name": "chartgpu-react",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "React bindings for ChartGPU — WebGPU-powered high-performance charts",
   "license": "MIT",
   "author": "",
@@ -42,7 +42,7 @@
     "test:watch": "vitest"
   },
   "peerDependencies": {
-    "@chartgpu/chartgpu": "^0.3.6",
+    "@chartgpu/chartgpu": "^0.3.9",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -52,7 +52,7 @@
     }
   },
   "devDependencies": {
-    "@chartgpu/chartgpu": "^0.3.6",
+    "@chartgpu/chartgpu": "^0.3.9",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",

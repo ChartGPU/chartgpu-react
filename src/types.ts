@@ -1,6 +1,6 @@
 /**
  * Type definitions for ChartGPU React wrapper.
- * Aligned with @chartgpu/chartgpu ^0.3.6.
+ * Aligned with @chartgpu/chartgpu ^0.3.9.
  */
 
 import type { CSSProperties } from 'react';
